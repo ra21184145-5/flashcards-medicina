@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,15 +11,24 @@ import { StackNav, StackRoute } from '../navigation/types';
 export function CreateFlashcardScreen() {
   const nav = useNavigation<StackNav>();
   const route = useRoute<StackRoute<'CreateFlashcard'>>();
-  const { deckId } = route.params;
-  const { criarCard, decks } = useData();
+  const { deckId, editId } = route.params;
+  const { criarCard, atualizarCard, decks, cards } = useData();
 
   const deck = decks.find((d) => d.id === deckId);
+  const cardParaEditar = editId ? cards.find((c) => c.id === editId) : undefined;
+  const modoEdicao = !!cardParaEditar;
 
   const [frente, setFrente] = useState('');
   const [verso, setVerso] = useState('');
   const [erro, setErro] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (cardParaEditar) {
+      setFrente(cardParaEditar.frente);
+      setVerso(cardParaEditar.verso);
+    }
+  }, [cardParaEditar]);
 
   async function salvar(novo: boolean) {
     if (!frente.trim() || !verso.trim()) {
@@ -29,12 +38,21 @@ export function CreateFlashcardScreen() {
     setErro('');
     setLoading(true);
     try {
-      await criarCard(deckId, frente.trim(), verso.trim());
-      if (novo) {
-        setFrente('');
-        setVerso('');
-      } else {
+      if (modoEdicao && cardParaEditar) {
+        await atualizarCard({
+          ...cardParaEditar,
+          frente: frente.trim(),
+          verso: verso.trim(),
+        });
         nav.goBack();
+      } else {
+        await criarCard(deckId, frente.trim(), verso.trim());
+        if (novo) {
+          setFrente('');
+          setVerso('');
+        } else {
+          nav.goBack();
+        }
       }
     } catch (e: any) {
       setErro(e?.message ?? 'Falha ao salvar.');
@@ -50,9 +68,9 @@ export function CreateFlashcardScreen() {
       </View>
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-          <Text style={styles.titulo}>Novo flashcard</Text>
+          <Text style={styles.titulo}>{modoEdicao ? 'Editar flashcard' : 'Novo flashcard'}</Text>
           <Text style={styles.subtitulo}>
-            {deck ? `Em: ${deck.nome}` : 'Novo cartao'}
+            {deck ? `Em: ${deck.nome}` : modoEdicao ? 'Editar cartao' : 'Novo cartao'}
           </Text>
 
           <View style={{ marginTop: spacing.lg }}>
@@ -76,14 +94,22 @@ export function CreateFlashcardScreen() {
             />
             {erro ? <Text style={styles.erro}>{erro}</Text> : null}
 
-            <Button title="Salvar e voltar" onPress={() => salvar(false)} loading={loading} />
-            <View style={{ height: spacing.sm }} />
             <Button
-              title="Salvar e adicionar outro"
-              variant="outline"
-              onPress={() => salvar(true)}
+              title={modoEdicao ? 'Salvar alteracoes' : 'Salvar e voltar'}
+              onPress={() => salvar(false)}
               loading={loading}
             />
+            {!modoEdicao ? (
+              <>
+                <View style={{ height: spacing.sm }} />
+                <Button
+                  title="Salvar e adicionar outro"
+                  variant="outline"
+                  onPress={() => salvar(true)}
+                  loading={loading}
+                />
+              </>
+            ) : null}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

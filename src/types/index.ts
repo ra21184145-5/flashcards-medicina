@@ -41,3 +41,16 @@ export interface Grupo {
 }
 
 export type Qualidade = 0 | 1 | 2 | 3 | 4 | 5;
+
+export interface ReviewLog {
+  id: string;
+  cardId: string;
+  deckId: string;
+  qualidade: Qualidade;
+  timestamp: number;
+}
+
+export interface Configuracoes {
+  geminiApiKey: string;
+  geminiModelo: string;
+}

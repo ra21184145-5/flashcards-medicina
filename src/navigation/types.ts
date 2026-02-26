@@ -6,11 +6,13 @@ export type RootStackParamList = {
   Register: undefined;
   Tabs: undefined;
   DeckDetail: { deckId: string };
-  CreateDeck: undefined;
-  CreateFlashcard: { deckId: string };
+  CreateDeck: { editId?: string } | undefined;
+  CreateFlashcard: { deckId: string; editId?: string };
   Study: { deckId: string };
   CreateGroup: undefined;
-  GroupDetail: { grupoId: string };
+  AIGenerate: { deckId: string };
+  Settings: undefined;
+  Stats: undefined;
 };
 
 export type StackNav = NativeStackNavigationProp<RootStackParamList>;

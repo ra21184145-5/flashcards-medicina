@@ -16,6 +16,9 @@ import { GroupsScreen } from '../screens/GroupsScreen';
 import { CreateGroupScreen } from '../screens/CreateGroupScreen';
 import { PublicDecksScreen } from '../screens/PublicDecksScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
+import { AIGenerateScreen } from '../screens/AIGenerateScreen';
+import { SettingsScreen } from '../screens/SettingsScreen';
+import { StatsScreen } from '../screens/StatsScreen';
 import { RootStackParamList } from './types';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -104,6 +107,9 @@ export function AppNavigator() {
               options={{ animation: 'slide_from_bottom' }}
             />
             <Stack.Screen name="CreateGroup" component={CreateGroupScreen} />
+            <Stack.Screen name="AIGenerate" component={AIGenerateScreen} />
+            <Stack.Screen name="Settings" component={SettingsScreen} />
+            <Stack.Screen name="Stats" component={StatsScreen} />
           </>
         ) : (
           <>
