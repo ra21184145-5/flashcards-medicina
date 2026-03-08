@@ -9,6 +9,7 @@ export interface User {
 export interface Flashcard {
   id: string;
   deckId: string;
+  donoId: string;
   frente: string;
   verso: string;
   criadoEm: number;
@@ -46,6 +47,7 @@ export interface ReviewLog {
   id: string;
   cardId: string;
   deckId: string;
+  donoId: string;
   qualidade: Qualidade;
   timestamp: number;
 }
