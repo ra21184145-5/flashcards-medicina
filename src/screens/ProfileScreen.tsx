@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ScreenContainer } from '../components/ScreenContainer';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { useAuth } from '../context/AuthContext';
@@ -18,7 +18,7 @@ export function ProfileScreen() {
   const meusGrupos = grupos.filter((g) => g.membros.includes(user?.id ?? '')).length;
 
   return (
-    <SafeAreaView style={styles.flex} edges={['top']}>
+    <ScreenContainer>
       <View style={styles.header}>
         <Text style={styles.titulo}>Perfil</Text>
       </View>
@@ -63,7 +63,7 @@ export function ProfileScreen() {
           <Button title="Sair da conta" variant="outline" onPress={sair} />
         </View>
       </View>
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }
 

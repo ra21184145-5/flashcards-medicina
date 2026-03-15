@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { colors, spacing } from '../theme/colors';
+import { fonts } from '../theme/typography';
 
 interface EmptyStateProps {
   titulo: string;
@@ -12,7 +13,9 @@ interface EmptyStateProps {
 export function EmptyState({ titulo, descricao, acao, icone = '📚' }: EmptyStateProps) {
   return (
     <View style={styles.wrapper}>
-      <Text style={styles.icone}>{icone}</Text>
+      <View style={styles.iconeCirculo}>
+        <Text style={styles.icone}>{icone}</Text>
+      </View>
       <Text style={styles.titulo}>{titulo}</Text>
       {descricao ? <Text style={styles.descricao}>{descricao}</Text> : null}
       {acao ? <View style={styles.acao}>{acao}</View> : null}
@@ -27,23 +30,36 @@ const styles = StyleSheet.create({
     paddingVertical: 48,
     paddingHorizontal: spacing.lg,
   },
-  icone: {
-    fontSize: 48,
+  iconeCirculo: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    backgroundColor: colors.surfaceMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  icone: {
+    fontSize: 30,
   },
   titulo: {
-    fontSize: 17,
-    fontWeight: '700',
+    fontFamily: fonts.display,
+    fontSize: 20,
     color: colors.text,
     marginBottom: 6,
     textAlign: 'center',
+    letterSpacing: -0.3,
   },
   descricao: {
+    fontFamily: fonts.body,
     fontSize: 14,
     color: colors.textMuted,
     textAlign: 'center',
     marginBottom: spacing.md,
-    lineHeight: 20,
+    lineHeight: 21,
+    maxWidth: 340,
   },
   acao: {
     width: '100%',

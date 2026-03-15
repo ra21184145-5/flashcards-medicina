@@ -21,7 +21,7 @@ export interface CardGerado {
   verso: string;
 }
 
-const MODELO_PADRAO = 'gemini-2.5-pro';
+const MODELO_PADRAO = 'gemini-3.1-pro-preview';
 const LIMITE_MATERIAL_CHARS = 60_000;
 
 const INSTRUCAO_BASE = `Voce e um tutor especializado em elaborar flashcards de estudo \

@@ -1,8 +1,10 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import {
   User as FirebaseUser,
+  GoogleAuthProvider,
   createUserWithEmailAndPassword,
   onAuthStateChanged,
+  signInWithCredential,
   signInWithEmailAndPassword,
   signOut,
   updateProfile,
@@ -17,6 +19,7 @@ interface AuthContextValue {
   carregando: boolean;
   entrar: (email: string, senha: string) => Promise<void>;
   cadastrar: (nome: string, email: string, senha: string) => Promise<void>;
+  entrarComGoogle: (idToken: string) => Promise<void>;
   sair: () => Promise<void>;
 }
 
@@ -102,6 +105,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  async function entrarComGoogle(idToken: string) {
+    if (!idToken) throw new Error('Token do Google nao foi recebido.');
+    try {
+      const credential = GoogleAuthProvider.credential(idToken);
+      const cred = await signInWithCredential(auth, credential);
+      // Na primeira vez que o usuario entra com Google, salva o perfil no Firestore
+      // para que o nome aparece na exploracao de baralhos publicos.
+      const nome = cred.user.displayName ?? (cred.user.email ?? '').split('@')[0];
+      await cloudSync.salvarPerfilUsuario(cred.user.uid, nome, cred.user.email ?? '');
+    } catch (e) {
+      throw traduzirErro(e);
+    }
+  }
+
   async function sair() {
     await signOut(auth);
     // Limpamos o cache local para evitar vazamento entre contas no mesmo dispositivo.
@@ -109,7 +126,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, carregando, entrar, cadastrar, sair }}>
+    <AuthContext.Provider
+      value={{ user, carregando, entrar, cadastrar, entrarComGoogle, sair }}
+    >
       {children}
     </AuthContext.Provider>
   );

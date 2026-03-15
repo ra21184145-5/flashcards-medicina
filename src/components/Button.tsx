@@ -1,6 +1,7 @@
 import React from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native';
-import { colors, spacing } from '../theme/colors';
+import { colors, radii, spacing } from '../theme/colors';
+import { fonts } from '../theme/typography';
 
 type Variant = 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost';
 
@@ -14,7 +15,15 @@ interface ButtonProps {
   icon?: React.ReactNode;
 }
 
-export function Button({ title, onPress, variant = 'primary', loading, disabled, style, icon }: ButtonProps) {
+export function Button({
+  title,
+  onPress,
+  variant = 'primary',
+  loading,
+  disabled,
+  style,
+  icon,
+}: ButtonProps) {
   const base = styles.base;
   const variantStyle = styles[variant];
   const textVariant = textStyles[variant];
@@ -34,7 +43,13 @@ export function Button({ title, onPress, variant = 'primary', loading, disabled,
     >
       <View style={styles.content}>
         {loading ? (
-          <ActivityIndicator color={variant === 'primary' || variant === 'danger' ? '#fff' : colors.primary} />
+          <ActivityIndicator
+            color={
+              variant === 'primary' || variant === 'danger' || variant === 'secondary'
+                ? '#fff'
+                : colors.primary
+            }
+          />
         ) : (
           <>
             {icon}
@@ -48,8 +63,8 @@ export function Button({ title, onPress, variant = 'primary', loading, disabled,
 
 const styles = StyleSheet.create({
   base: {
-    height: 48,
-    borderRadius: 12,
+    height: 52,
+    borderRadius: radii.md,
     paddingHorizontal: spacing.lg,
     justifyContent: 'center',
   },
@@ -60,19 +75,20 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   text: {
+    fontFamily: fonts.bodySemiBold,
     fontSize: 15,
-    fontWeight: '600',
+    letterSpacing: 0.2,
   },
   primary: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.primaryDeep,
   },
   secondary: {
     backgroundColor: colors.accent,
   },
   outline: {
-    backgroundColor: 'transparent',
+    backgroundColor: colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.borderStrong,
   },
   danger: {
     backgroundColor: colors.danger,
@@ -81,11 +97,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   disabled: {
-    opacity: 0.5,
+    opacity: 0.45,
   },
   pressed: {
-    opacity: 0.85,
-    transform: [{ scale: 0.99 }],
+    opacity: 0.88,
+    transform: [{ scale: 0.995 }],
   },
 });
 

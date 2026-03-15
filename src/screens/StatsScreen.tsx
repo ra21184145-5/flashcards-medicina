@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ScreenContainer } from '../components/ScreenContainer';
 import { useNavigation } from '@react-navigation/native';
 import { Card } from '../components/Card';
 import { useData } from '../context/DataContext';
@@ -69,7 +69,7 @@ export function StatsScreen() {
   }, [reviewLogs, cards]);
 
   return (
-    <SafeAreaView style={styles.flex} edges={['top']}>
+    <ScreenContainer>
       <View style={styles.topo}>
         <Pressable onPress={() => nav.goBack()} style={styles.voltar}>
           <Text style={styles.voltarTexto}>← Voltar</Text>
@@ -177,7 +177,7 @@ export function StatsScreen() {
           </Card>
         ) : null}
       </ScrollView>
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }
 

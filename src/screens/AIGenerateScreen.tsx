@@ -11,7 +11,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ScreenContainer } from '../components/ScreenContainer';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
@@ -124,7 +124,7 @@ export function AIGenerateScreen() {
 
   if (resultado) {
     return (
-      <SafeAreaView style={styles.flex} edges={['top']}>
+      <ScreenContainer>
         <View style={styles.topo}>
           <Pressable onPress={() => setResultado(null)} style={styles.voltar}>
             <Text style={styles.voltarTexto}>← Refazer</Text>
@@ -183,12 +183,12 @@ export function AIGenerateScreen() {
 
           {erro ? <Text style={styles.erro}>{erro}</Text> : null}
         </ScrollView>
-      </SafeAreaView>
+      </ScreenContainer>
     );
   }
 
   return (
-    <SafeAreaView style={styles.flex} edges={['top']}>
+    <ScreenContainer>
       <View style={styles.topo}>
         <Pressable onPress={() => nav.goBack()} style={styles.voltar}>
           <Text style={styles.voltarTexto}>← Voltar</Text>
@@ -320,7 +320,7 @@ export function AIGenerateScreen() {
           {erro ? <Text style={styles.erro}>{erro}</Text> : null}
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }
 

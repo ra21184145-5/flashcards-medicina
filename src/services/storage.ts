@@ -12,7 +12,7 @@ const KEYS = {
 
 const CONFIG_PADRAO: Configuracoes = {
   geminiApiKey: '',
-  geminiModelo: 'gemini-2.5-pro',
+  geminiModelo: 'gemini-3.1-pro-preview',
 };
 
 async function getItem<T>(key: string, fallback: T): Promise<T> {

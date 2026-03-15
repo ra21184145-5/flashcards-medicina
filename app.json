@@ -5,13 +5,25 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "platforms": ["android", "web"],
+    "platforms": [
+      "android",
+      "web"
+    ],
     "android": {
       "package": "com.brunoosanes.flashcardsmedicina",
       "versionCode": 1
     },
     "web": {
       "bundler": "metro"
-    }
+    },
+    "plugins": [
+      "expo-font"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "2d1e8efe-1b0d-4630-89ad-293a151e64a7"
+      }
+    },
+    "owner": "brunoosanes"
   }
 }

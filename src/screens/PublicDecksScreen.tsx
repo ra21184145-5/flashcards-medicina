@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ScreenContainer } from '../components/ScreenContainer';
 import { Card } from '../components/Card';
 import { Chip } from '../components/Chip';
 import { EmptyState } from '../components/EmptyState';
@@ -37,7 +37,7 @@ export function PublicDecksScreen() {
   const publicos = Array.from(mapa.values());
 
   return (
-    <SafeAreaView style={styles.flex} edges={['top']}>
+    <ScreenContainer>
       <View style={styles.header}>
         <Text style={styles.titulo}>Explorar baralhos</Text>
         <Text style={styles.subtitulo}>Baralhos publicos da comunidade.</Text>
@@ -72,7 +72,7 @@ export function PublicDecksScreen() {
           </Card>
         )}
       />
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }
 

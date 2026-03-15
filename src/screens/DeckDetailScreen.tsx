@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Alert, FlatList, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ScreenContainer } from '../components/ScreenContainer';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { Chip } from '../components/Chip';
@@ -35,9 +35,9 @@ export function DeckDetailScreen() {
 
   if (!deck) {
     return (
-      <SafeAreaView style={styles.flex}>
+      <ScreenContainer edges={['top', 'bottom']}>
         <EmptyState titulo="Baralho nao encontrado" icone="❓" />
-      </SafeAreaView>
+      </ScreenContainer>
     );
   }
 
@@ -59,7 +59,7 @@ export function DeckDetailScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.flex} edges={['top']}>
+    <ScreenContainer>
       <View style={styles.topo}>
         <Button title="← Voltar" variant="ghost" onPress={() => nav.goBack()} style={styles.voltar} />
       </View>
@@ -174,7 +174,7 @@ export function DeckDetailScreen() {
           </Card>
         )}
       />
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }
 

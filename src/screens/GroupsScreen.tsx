@@ -1,7 +1,7 @@
 import React from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ScreenContainer } from '../components/ScreenContainer';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { Chip } from '../components/Chip';
@@ -15,7 +15,7 @@ export function GroupsScreen() {
   const { grupos } = useData();
 
   return (
-    <SafeAreaView style={styles.flex} edges={['top']}>
+    <ScreenContainer>
       <View style={styles.header}>
         <Text style={styles.titulo}>Grupos de estudo</Text>
         <Text style={styles.subtitulo}>
@@ -61,7 +61,7 @@ export function GroupsScreen() {
           </Card>
         )}
       />
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }
 
