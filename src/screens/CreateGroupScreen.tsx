@@ -1,11 +1,20 @@
 import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { useData } from '../context/DataContext';
-import { colors, spacing } from '../theme/colors';
+import { colors, radii, spacing } from '../theme/colors';
+import { fonts } from '../theme/typography';
 import { StackNav } from '../navigation/types';
 
 export function CreateGroupScreen() {
@@ -41,23 +50,34 @@ export function CreateGroupScreen() {
   return (
     <ScreenContainer>
       <View style={styles.topo}>
-        <Button title="← Voltar" variant="ghost" onPress={() => nav.goBack()} style={styles.voltar} />
+        <Pressable onPress={() => nav.goBack()} style={styles.voltar} hitSlop={8}>
+          <Text style={styles.voltarTexto}>← Voltar</Text>
+        </Pressable>
       </View>
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-          <Text style={styles.titulo}>Novo grupo</Text>
-          <Text style={styles.subtitulo}>Reuna colegas para compartilhar baralhos de estudo.</Text>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Text style={styles.eyebrow}>NOVO GRUPO</Text>
+          <Text style={styles.titulo}>Criar grupo de estudo</Text>
+          <Text style={styles.subtitulo}>
+            Reúna colegas para compartilhar baralhos e revisar juntos.
+          </Text>
 
           <View style={{ marginTop: spacing.lg }}>
             <Input
               label="Nome"
-              placeholder="Ex.: Medicina UFSM - Turma 2024"
+              placeholder="Ex.: Medicina UFSM — Turma 2024"
               value={nome}
               onChangeText={setNome}
             />
             <Input
-              label="Descricao"
-              placeholder="Sobre o que sera esse grupo"
+              label="Descrição"
+              placeholder="Sobre o que será esse grupo"
               value={descricao}
               onChangeText={setDescricao}
               multiline
@@ -65,12 +85,17 @@ export function CreateGroupScreen() {
               style={{ minHeight: 80, textAlignVertical: 'top' }}
             />
 
+            <View style={styles.secaoWrap}>
+              <Text style={styles.secao}>Acesso</Text>
+              <View style={styles.secaoRegua} />
+            </View>
+
             <Pressable
               onPress={() => setRequerAprovacao((v) => !v)}
               style={[styles.toggle, requerAprovacao && styles.toggleAtivo]}
             >
-              <View style={{ flex: 1 }}>
-                <Text style={styles.toggleTitulo}>Requer aprovacao</Text>
+              <View style={{ flex: 1, paddingRight: spacing.md }}>
+                <Text style={styles.toggleTitulo}>Requer aprovação</Text>
                 <Text style={styles.toggleDescricao}>
                   Novos membros precisam ser aprovados por um administrador.
                 </Text>
@@ -94,27 +119,81 @@ export function CreateGroupScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.background },
-  topo: { paddingHorizontal: spacing.sm, paddingTop: spacing.xs },
-  voltar: { alignSelf: 'flex-start', paddingHorizontal: spacing.md },
-  container: { padding: spacing.lg, paddingTop: spacing.xs, paddingBottom: 120 },
-  titulo: { fontSize: 22, fontWeight: '800', color: colors.text },
-  subtitulo: { fontSize: 14, color: colors.textMuted, marginTop: 4 },
+  topo: { paddingHorizontal: spacing.lg, paddingTop: spacing.xs },
+  voltar: {
+    alignSelf: 'flex-start',
+    paddingVertical: 6,
+    paddingRight: spacing.md,
+  },
+  voltarTexto: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 13,
+    color: colors.primaryDeep,
+    letterSpacing: 0.2,
+  },
+  container: { padding: spacing.lg, paddingTop: spacing.sm, paddingBottom: 120 },
+  eyebrow: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 10,
+    letterSpacing: 1.8,
+    color: colors.textSoft,
+    textTransform: 'uppercase',
+    marginBottom: 6,
+  },
+  titulo: {
+    fontFamily: fonts.display,
+    fontSize: 28,
+    color: colors.text,
+    letterSpacing: -0.5,
+    lineHeight: 32,
+  },
+  subtitulo: {
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.textMuted,
+    marginTop: 6,
+    lineHeight: 21,
+  },
+  secaoWrap: { marginTop: spacing.md, marginBottom: spacing.sm },
+  secao: {
+    fontFamily: fonts.display,
+    fontSize: 18,
+    color: colors.text,
+    letterSpacing: -0.2,
+    marginBottom: 6,
+  },
+  secaoRegua: {
+    width: 32,
+    height: 2,
+    backgroundColor: colors.amber,
+  },
   toggle: {
-    marginTop: spacing.sm,
+    marginTop: spacing.xs,
     flexDirection: 'row',
     alignItems: 'center',
     padding: spacing.md,
-    borderRadius: 12,
+    borderRadius: radii.md,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.card,
   },
   toggleAtivo: {
-    borderColor: colors.primary,
-    backgroundColor: '#EEF4FE',
+    borderColor: colors.primaryDeep,
+    backgroundColor: colors.primarySoft,
   },
-  toggleTitulo: { fontSize: 14, fontWeight: '600', color: colors.text },
-  toggleDescricao: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
+  toggleTitulo: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 15,
+    color: colors.text,
+    letterSpacing: 0.1,
+  },
+  toggleDescricao: {
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textMuted,
+    marginTop: 2,
+    lineHeight: 17,
+  },
   switch: {
     width: 44,
     height: 26,
@@ -123,7 +202,7 @@ const styles = StyleSheet.create({
     padding: 2,
     justifyContent: 'center',
   },
-  switchAtivo: { backgroundColor: colors.primary },
+  switchAtivo: { backgroundColor: colors.primaryDeep },
   knob: {
     width: 22,
     height: 22,
@@ -133,5 +212,10 @@ const styles = StyleSheet.create({
   knobAtivo: {
     transform: [{ translateX: 18 }],
   },
-  erro: { color: colors.danger, fontSize: 13, marginTop: spacing.md },
+  erro: {
+    fontFamily: fonts.bodyMedium,
+    color: colors.danger,
+    fontSize: 13,
+    marginTop: spacing.md,
+  },
 });

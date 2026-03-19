@@ -6,7 +6,8 @@ import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { Input } from '../components/Input';
 import { useData } from '../context/DataContext';
-import { colors, spacing } from '../theme/colors';
+import { colors, radii, spacing } from '../theme/colors';
+import { fonts } from '../theme/typography';
 import { StackNav } from '../navigation/types';
 
 const MODELOS_SUGERIDOS = [
@@ -42,7 +43,9 @@ export function SettingsScreen() {
     });
   }
 
-  const mascarada = chave ? chave.slice(0, 6) + '•'.repeat(Math.max(0, chave.length - 10)) + chave.slice(-4) : '';
+  const mascarada = chave
+    ? chave.slice(0, 6) + '•'.repeat(Math.max(0, chave.length - 10)) + chave.slice(-4)
+    : '';
 
   return (
     <ScreenContainer>
@@ -53,19 +56,25 @@ export function SettingsScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={styles.titulo}>Configuracoes</Text>
+        <Text style={styles.eyebrow}>CONFIGURAÇÕES</Text>
+        <Text style={styles.titulo}>Preferências</Text>
         <Text style={styles.subtitulo}>
-          Gerencie sua chave de API para a geracao automatica de flashcards.
+          Gerencie sua chave de API para a geração automática de flashcards.
         </Text>
 
+        <View style={styles.secaoWrap}>
+          <Text style={styles.secao}>Google Gemini</Text>
+          <View style={styles.secaoRegua} />
+        </View>
         <Card style={styles.secaoCard}>
-          <Text style={styles.secaoTitulo}>Google Gemini</Text>
           <Text style={styles.secaoTexto}>
-            Este aplicativo usa a API do Google Gemini para gerar flashcards a partir de material de estudo. A chave e salva apenas no seu dispositivo.
+            Este aplicativo usa a API do Google Gemini para gerar flashcards a partir de material de estudo. A chave é salva apenas no seu dispositivo.
           </Text>
 
           <Pressable onPress={abrirLinkAPI} style={styles.linkBox}>
-            <Text style={styles.linkTexto}>Obtenha sua chave em aistudio.google.com</Text>
+            <Text style={styles.linkTexto}>
+              Obtenha sua chave em aistudio.google.com
+            </Text>
             <Text style={styles.linkSeta}>↗</Text>
           </Pressable>
 
@@ -80,7 +89,9 @@ export function SettingsScreen() {
           />
 
           {chave ? (
-            <Text style={styles.previewChave}>Atual: {mascarada}</Text>
+            <Text style={styles.previewChave}>
+              Atual: <Text style={styles.previewChaveMono}>{mascarada}</Text>
+            </Text>
           ) : (
             <Text style={styles.avisoChave}>Nenhuma chave configurada.</Text>
           )}
@@ -103,7 +114,12 @@ export function SettingsScreen() {
                 onPress={() => setModelo(m)}
                 style={[styles.chipModelo, modelo === m && styles.chipModeloAtivo]}
               >
-                <Text style={[styles.chipModeloTexto, modelo === m && styles.chipModeloTextoAtivo]}>
+                <Text
+                  style={[
+                    styles.chipModeloTexto,
+                    modelo === m && styles.chipModeloTextoAtivo,
+                  ]}
+                >
                   {m}
                 </Text>
               </Pressable>
@@ -112,17 +128,20 @@ export function SettingsScreen() {
 
           <View style={{ height: spacing.md }} />
 
-          <Button title={salvou ? 'Salvo ✓' : 'Salvar configuracoes'} onPress={salvar} />
+          <Button title={salvou ? 'Salvo ✓' : 'Salvar configurações'} onPress={salvar} />
 
           {erro ? <Text style={styles.erro}>{erro}</Text> : null}
         </Card>
 
+        <View style={styles.secaoWrap}>
+          <Text style={styles.secao}>Sobre</Text>
+          <View style={styles.secaoRegua} />
+        </View>
         <Card style={styles.secaoCard}>
-          <Text style={styles.secaoTitulo}>Sobre</Text>
           <Text style={styles.secaoTexto}>
-            Flashcards Medicina e um aplicativo de estudo com revisao espacada (SM-2 simplificado) voltado a estudantes e profissionais de medicina. Desenvolvido como Trabalho de Conclusao de Curso em Engenharia de Software.
+            Flashcards Medicina é um aplicativo de estudo com revisão espaçada (SM-2 simplificado) voltado a estudantes e profissionais de medicina. Desenvolvido como Trabalho de Conclusão de Curso em Engenharia de Software.
           </Text>
-          <Text style={styles.versao}>versao 1.1.0</Text>
+          <Text style={styles.versao}>versão 1.1.0</Text>
         </Card>
       </ScrollView>
     </ScreenContainer>
@@ -136,29 +155,98 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
   },
   voltar: { paddingVertical: 6, alignSelf: 'flex-start' },
-  voltarTexto: { color: colors.primary, fontSize: 14, fontWeight: '600' },
+  voltarTexto: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 13,
+    color: colors.primaryDeep,
+    letterSpacing: 0.2,
+  },
   scroll: { padding: spacing.lg, paddingBottom: spacing.xl },
-  titulo: { fontSize: 26, fontWeight: '800', color: colors.text },
-  subtitulo: { fontSize: 14, color: colors.textMuted, marginTop: 4, marginBottom: spacing.lg },
+  eyebrow: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 10,
+    letterSpacing: 1.8,
+    color: colors.textSoft,
+    textTransform: 'uppercase',
+    marginBottom: 6,
+  },
+  titulo: {
+    fontFamily: fonts.display,
+    fontSize: 28,
+    color: colors.text,
+    letterSpacing: -0.5,
+    lineHeight: 32,
+  },
+  subtitulo: {
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.textMuted,
+    marginTop: 6,
+    marginBottom: spacing.lg,
+    lineHeight: 21,
+  },
+  secaoWrap: { marginTop: spacing.sm, marginBottom: spacing.sm },
+  secao: {
+    fontFamily: fonts.display,
+    fontSize: 18,
+    color: colors.text,
+    letterSpacing: -0.2,
+    marginBottom: 6,
+  },
+  secaoRegua: {
+    width: 32,
+    height: 2,
+    backgroundColor: colors.amber,
+  },
   secaoCard: { marginBottom: spacing.md },
-  secaoTitulo: { fontSize: 16, fontWeight: '700', color: colors.text, marginBottom: 6 },
-  secaoTexto: { fontSize: 13, color: colors.textMuted, lineHeight: 19, marginBottom: spacing.md },
+  secaoTexto: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.textMuted,
+    lineHeight: 20,
+    marginBottom: spacing.md,
+  },
   linkBox: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: '#F0F6FF',
-    borderRadius: 10,
+    borderColor: colors.primaryDeep,
+    backgroundColor: colors.primarySoft,
+    borderRadius: radii.md,
     paddingHorizontal: spacing.md,
-    paddingVertical: 10,
+    paddingVertical: 12,
     marginBottom: spacing.md,
   },
-  linkTexto: { color: colors.primary, fontSize: 13, fontWeight: '600' },
-  linkSeta: { color: colors.primary, fontSize: 14 },
-  previewChave: { fontSize: 12, color: colors.textMuted, marginTop: -4 },
-  avisoChave: { fontSize: 12, color: colors.warning, marginTop: -4 },
+  linkTexto: {
+    fontFamily: fonts.bodySemiBold,
+    color: colors.primaryDeep,
+    fontSize: 13,
+    letterSpacing: 0.2,
+  },
+  linkSeta: {
+    fontFamily: fonts.bodySemiBold,
+    color: colors.primaryDeep,
+    fontSize: 14,
+  },
+  previewChave: {
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textMuted,
+    marginTop: -4,
+  },
+  previewChaveMono: {
+    fontFamily: fonts.bodyMedium,
+    color: colors.text,
+    letterSpacing: 0.6,
+  },
+  avisoChave: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 12,
+    color: colors.amber,
+    marginTop: -4,
+    letterSpacing: 0.2,
+  },
   modelos: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -166,19 +254,39 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   chipModelo: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
     borderRadius: 999,
     borderWidth: 1,
     borderColor: colors.border,
     backgroundColor: colors.card,
   },
   chipModeloAtivo: {
-    borderColor: colors.primary,
-    backgroundColor: '#E6EFFB',
+    borderColor: colors.primaryDeep,
+    backgroundColor: colors.primarySoft,
   },
-  chipModeloTexto: { fontSize: 11, color: colors.textMuted, fontWeight: '600' },
-  chipModeloTextoAtivo: { color: colors.primary },
-  erro: { color: colors.danger, fontSize: 13, marginTop: 10, textAlign: 'center' },
-  versao: { fontSize: 11, color: colors.textSoft, marginTop: -spacing.sm },
+  chipModeloTexto: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 11,
+    color: colors.textMuted,
+    letterSpacing: 0.3,
+  },
+  chipModeloTextoAtivo: {
+    fontFamily: fonts.bodySemiBold,
+    color: colors.primaryDeep,
+  },
+  erro: {
+    fontFamily: fonts.bodyMedium,
+    color: colors.danger,
+    fontSize: 13,
+    marginTop: 10,
+    textAlign: 'center',
+  },
+  versao: {
+    fontFamily: fonts.displayItalic,
+    fontSize: 12,
+    color: colors.textSoft,
+    marginTop: -spacing.sm,
+    letterSpacing: 0.2,
+  },
 });

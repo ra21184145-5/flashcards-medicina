@@ -7,6 +7,7 @@ import { Chip } from '../components/Chip';
 import { EmptyState } from '../components/EmptyState';
 import { useData } from '../context/DataContext';
 import { colors, spacing } from '../theme/colors';
+import { fonts } from '../theme/typography';
 import { StackNav } from '../navigation/types';
 import { Deck } from '../types';
 
@@ -39,8 +40,11 @@ export function PublicDecksScreen() {
   return (
     <ScreenContainer>
       <View style={styles.header}>
-        <Text style={styles.titulo}>Explorar baralhos</Text>
-        <Text style={styles.subtitulo}>Baralhos publicos da comunidade.</Text>
+        <Text style={styles.eyebrow}>EXPLORAR</Text>
+        <Text style={styles.titulo}>Biblioteca pública</Text>
+        <Text style={styles.subtitulo}>
+          Baralhos compartilhados pela comunidade de estudo.
+        </Text>
       </View>
       <FlatList
         data={publicos}
@@ -49,8 +53,8 @@ export function PublicDecksScreen() {
         refreshControl={<RefreshControl refreshing={atualizando} onRefresh={atualizar} />}
         ListEmptyComponent={
           <EmptyState
-            titulo="Nenhum baralho publico disponivel"
-            descricao="Assim que a comunidade publicar baralhos, eles aparecerao aqui."
+            titulo="Nenhum baralho público disponível"
+            descricao="Assim que a comunidade publicar baralhos, eles aparecerão aqui."
             icone="🌐"
           />
         }
@@ -68,7 +72,11 @@ export function PublicDecksScreen() {
                 {item.descricao}
               </Text>
             ) : null}
-            <Text style={styles.meta}>{item.totalCards} cards</Text>
+            <View style={styles.rodape}>
+              <Text style={styles.meta}>
+                {item.totalCards} {item.totalCards === 1 ? 'cartão' : 'cartões'}
+              </Text>
+            </View>
           </Card>
         )}
       />
@@ -80,19 +88,63 @@ const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.background },
   header: {
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
+    paddingTop: spacing.lg,
     paddingBottom: spacing.sm,
   },
-  titulo: { fontSize: 24, fontWeight: '800', color: colors.text },
-  subtitulo: { fontSize: 13, color: colors.textMuted, marginTop: 4 },
+  eyebrow: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 10,
+    letterSpacing: 1.8,
+    color: colors.textSoft,
+    textTransform: 'uppercase',
+    marginBottom: 6,
+  },
+  titulo: {
+    fontFamily: fonts.display,
+    fontSize: 28,
+    color: colors.text,
+    letterSpacing: -0.5,
+    lineHeight: 32,
+  },
+  subtitulo: {
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.textMuted,
+    marginTop: 6,
+    lineHeight: 21,
+  },
   lista: { padding: spacing.lg, paddingTop: spacing.sm, paddingBottom: 120 },
   topo: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: spacing.sm,
   },
-  nome: { fontSize: 16, fontWeight: '700', color: colors.text, flex: 1 },
-  descricao: { fontSize: 13, color: colors.textMuted, marginTop: 4, lineHeight: 18 },
-  meta: { fontSize: 12, color: colors.textMuted, marginTop: spacing.sm },
+  nome: {
+    fontFamily: fonts.display,
+    fontSize: 18,
+    color: colors.text,
+    letterSpacing: -0.2,
+    flex: 1,
+  },
+  descricao: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.textMuted,
+    marginTop: 6,
+    lineHeight: 19,
+  },
+  rodape: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    marginTop: spacing.md,
+  },
+  meta: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 11,
+    color: colors.textMuted,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+  },
 });

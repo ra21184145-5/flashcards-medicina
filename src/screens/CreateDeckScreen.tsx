@@ -1,18 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { useData } from '../context/DataContext';
-import { colors, spacing } from '../theme/colors';
+import { colors, radii, spacing } from '../theme/colors';
+import { fonts } from '../theme/typography';
 import { StackNav, StackRoute } from '../navigation/types';
 import { Privacy } from '../types';
 
 const OPCOES_PRIVACIDADE: { valor: Privacy; titulo: string; descricao: string }[] = [
-  { valor: 'privado', titulo: 'Privado', descricao: 'Apenas voce acessa.' },
+  { valor: 'privado', titulo: 'Privado', descricao: 'Apenas você acessa.' },
   { valor: 'grupo', titulo: 'Grupo', descricao: 'Compartilhado com um grupo de estudo.' },
-  { valor: 'publico', titulo: 'Publico', descricao: 'Qualquer usuario pode visualizar.' },
+  { valor: 'publico', titulo: 'Público', descricao: 'Qualquer usuário pode visualizar.' },
 ];
 
 export function CreateDeckScreen() {
@@ -41,7 +50,7 @@ export function CreateDeckScreen() {
 
   async function handleSalvar() {
     if (!nome.trim()) {
-      setErro('Da um nome para o baralho.');
+      setErro('Dá um nome para o baralho.');
       return;
     }
     if (privacidade === 'grupo' && !grupoId) {
@@ -79,25 +88,40 @@ export function CreateDeckScreen() {
   return (
     <ScreenContainer>
       <View style={styles.topo}>
-        <Button title="← Voltar" variant="ghost" onPress={() => nav.goBack()} style={styles.voltar} />
+        <Pressable onPress={() => nav.goBack()} style={styles.voltar} hitSlop={8}>
+          <Text style={styles.voltarTexto}>← Voltar</Text>
+        </Pressable>
       </View>
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-          <Text style={styles.titulo}>{modoEdicao ? 'Editar baralho' : 'Novo baralho'}</Text>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Text style={styles.eyebrow}>
+            {modoEdicao ? 'EDITAR BARALHO' : 'NOVO BARALHO'}
+          </Text>
+          <Text style={styles.titulo}>
+            {modoEdicao ? 'Ajustes do baralho' : 'Criar baralho'}
+          </Text>
           <Text style={styles.subtitulo}>
-            {modoEdicao ? 'Atualize as informacoes abaixo.' : 'Organize seus flashcards por tema ou disciplina.'}
+            {modoEdicao
+              ? 'Atualize as informações abaixo.'
+              : 'Organize seus flashcards por tema ou disciplina.'}
           </Text>
 
           <View style={{ marginTop: spacing.lg }}>
             <Input
               label="Nome"
-              placeholder="Ex.: Cardiologia - Farmacologia"
+              placeholder="Ex.: Cardiologia — Farmacologia"
               value={nome}
               onChangeText={setNome}
             />
             <Input
-              label="Descricao (opcional)"
-              placeholder="Breve descricao do conteudo"
+              label="Descrição (opcional)"
+              placeholder="Breve descrição do conteúdo"
               value={descricao}
               onChangeText={setDescricao}
               multiline
@@ -105,7 +129,10 @@ export function CreateDeckScreen() {
               style={{ minHeight: 80, textAlignVertical: 'top' }}
             />
 
-            <Text style={styles.secao}>Privacidade</Text>
+            <View style={styles.secaoWrap}>
+              <Text style={styles.secao}>Privacidade</Text>
+              <View style={styles.secaoRegua} />
+            </View>
             {OPCOES_PRIVACIDADE.map((op) => {
               const ativo = privacidade === op.valor;
               return (
@@ -127,9 +154,12 @@ export function CreateDeckScreen() {
 
             {privacidade === 'grupo' ? (
               <View style={{ marginTop: spacing.md }}>
-                <Text style={styles.secao}>Selecione o grupo</Text>
+                <View style={styles.secaoWrap}>
+                  <Text style={styles.secao}>Selecione o grupo</Text>
+                  <View style={styles.secaoRegua} />
+                </View>
                 {grupos.length === 0 ? (
-                  <Text style={styles.aviso}>Voce ainda nao esta em nenhum grupo.</Text>
+                  <Text style={styles.aviso}>Você ainda não está em nenhum grupo.</Text>
                 ) : (
                   grupos.map((g) => {
                     const ativo = grupoId === g.id;
@@ -154,7 +184,7 @@ export function CreateDeckScreen() {
 
             <View style={{ marginTop: spacing.lg }}>
               <Button
-                title={modoEdicao ? 'Salvar alteracoes' : 'Criar baralho'}
+                title={modoEdicao ? 'Salvar alterações' : 'Criar baralho'}
                 onPress={handleSalvar}
                 loading={loading}
               />
@@ -168,15 +198,57 @@ export function CreateDeckScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.background },
-  topo: { paddingHorizontal: spacing.sm, paddingTop: spacing.xs },
-  voltar: { alignSelf: 'flex-start', paddingHorizontal: spacing.md },
-  container: { padding: spacing.lg, paddingTop: spacing.xs, paddingBottom: 120 },
-  titulo: { fontSize: 22, fontWeight: '800', color: colors.text },
-  subtitulo: { fontSize: 14, color: colors.textMuted, marginTop: 4 },
-  secao: { fontSize: 13, fontWeight: '700', color: colors.text, marginTop: spacing.md, marginBottom: spacing.sm, textTransform: 'uppercase', letterSpacing: 0.5 },
+  topo: { paddingHorizontal: spacing.lg, paddingTop: spacing.xs },
+  voltar: {
+    alignSelf: 'flex-start',
+    paddingVertical: 6,
+    paddingRight: spacing.md,
+  },
+  voltarTexto: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 13,
+    color: colors.primaryDeep,
+    letterSpacing: 0.2,
+  },
+  container: { padding: spacing.lg, paddingTop: spacing.sm, paddingBottom: 120 },
+  eyebrow: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 10,
+    letterSpacing: 1.8,
+    color: colors.textSoft,
+    textTransform: 'uppercase',
+    marginBottom: 6,
+  },
+  titulo: {
+    fontFamily: fonts.display,
+    fontSize: 28,
+    color: colors.text,
+    letterSpacing: -0.5,
+    lineHeight: 32,
+  },
+  subtitulo: {
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.textMuted,
+    marginTop: 6,
+    lineHeight: 21,
+  },
+  secaoWrap: { marginTop: spacing.md, marginBottom: spacing.sm },
+  secao: {
+    fontFamily: fonts.display,
+    fontSize: 18,
+    color: colors.text,
+    letterSpacing: -0.2,
+    marginBottom: 6,
+  },
+  secaoRegua: {
+    width: 32,
+    height: 2,
+    backgroundColor: colors.amber,
+  },
   opcao: {
     backgroundColor: colors.card,
-    borderRadius: 12,
+    borderRadius: radii.md,
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.md,
@@ -186,12 +258,22 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   opcaoAtiva: {
-    borderColor: colors.primary,
-    backgroundColor: '#EEF4FE',
+    borderColor: colors.primaryDeep,
+    backgroundColor: colors.primarySoft,
   },
   opcaoTexto: { flex: 1, paddingRight: spacing.md },
-  opcaoTitulo: { fontSize: 15, fontWeight: '600', color: colors.text },
-  opcaoDescricao: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
+  opcaoTitulo: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 15,
+    color: colors.text,
+    letterSpacing: 0.1,
+  },
+  opcaoDescricao: {
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textMuted,
+    marginTop: 2,
+  },
   radio: {
     width: 22,
     height: 22,
@@ -202,14 +284,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   radioAtivo: {
-    borderColor: colors.primary,
+    borderColor: colors.primaryDeep,
   },
   radioDot: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.primaryDeep,
   },
-  aviso: { fontSize: 13, color: colors.textMuted },
-  erro: { color: colors.danger, fontSize: 13, marginTop: spacing.md },
+  aviso: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.textMuted,
+  },
+  erro: {
+    fontFamily: fonts.bodyMedium,
+    color: colors.danger,
+    fontSize: 13,
+    marginTop: spacing.md,
+  },
 });

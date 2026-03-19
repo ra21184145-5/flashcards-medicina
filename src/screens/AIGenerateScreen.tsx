@@ -16,7 +16,8 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { useData } from '../context/DataContext';
-import { colors, spacing } from '../theme/colors';
+import { colors, radii, spacing } from '../theme/colors';
+import { fonts } from '../theme/typography';
 import { StackNav, StackRoute } from '../navigation/types';
 import {
   CardGerado,
@@ -129,19 +130,22 @@ export function AIGenerateScreen() {
           <Pressable onPress={() => setResultado(null)} style={styles.voltar}>
             <Text style={styles.voltarTexto}>← Refazer</Text>
           </Pressable>
-          <Text style={styles.topoTitulo}>Revisar cartoes</Text>
-          <Text style={styles.topoContador}>{selecionados}/{resultado.length}</Text>
+          <Text style={styles.topoTitulo}>Revisar cartões</Text>
+          <Text style={styles.topoContador}>
+            {selecionados}/{resultado.length}
+          </Text>
         </View>
 
         <ScrollView contentContainerStyle={styles.scroll}>
+          <Text style={styles.eyebrow}>REVISÃO · SAÍDA DA IA</Text>
           <Text style={styles.subtitulo}>
-            Edite o texto, desmarque os que nao servem e salve. So os marcados irao para o baralho.
+            Edite o texto, desmarque os que não servem e salve. Só os marcados irão para o baralho.
           </Text>
 
           {resultado.map((card, idx) => (
             <Card key={card.id} style={[styles.cardRev, !card.incluir && styles.cardRevInativo]}>
               <View style={styles.cardRevTopo}>
-                <Text style={styles.cardRevIndice}>#{idx + 1}</Text>
+                <Text style={styles.cardRevIndice}>#{String(idx + 1).padStart(2, '0')}</Text>
                 <Pressable onPress={() => toggleIncluir(card.id)} style={styles.toggleWrap}>
                   <View style={[styles.toggle, card.incluir && styles.toggleAtivo]}>
                     {card.incluir ? <Text style={styles.toggleCheck}>✓</Text> : null}
@@ -200,36 +204,35 @@ export function AIGenerateScreen() {
         style={{ flex: 1 }}
       >
         <ScrollView contentContainerStyle={styles.scroll}>
-          <View style={styles.hero}>
-            <Text style={styles.heroEmoji}>✨</Text>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.titulo}>Gerar com IA</Text>
-              <Text style={styles.subtitulo}>
-                Cole o material e a IA transforma em flashcards prontos para revisao espacada.
-              </Text>
-              {deck ? (
-                <Text style={styles.destinoTexto}>
-                  Destino: <Text style={styles.destinoNome}>{deck.nome}</Text>
-                </Text>
-              ) : null}
-            </View>
-          </View>
+          <Text style={styles.eyebrow}>GERAR COM IA</Text>
+          <Text style={styles.titulo}>Transformar em flashcards</Text>
+          <Text style={styles.subtitulo}>
+            Cole o material e a IA transforma em flashcards prontos para revisão espaçada.
+          </Text>
+          {deck ? (
+            <Text style={styles.destinoTexto}>
+              Destino: <Text style={styles.destinoNome}>{deck.nome}</Text>
+            </Text>
+          ) : null}
 
           {semChave ? (
             <Card style={styles.alerta}>
               <Text style={styles.alertaTitulo}>Configure sua chave de API</Text>
               <Text style={styles.alertaTexto}>
-                A geracao usa o Google Gemini. Cole sua chave em Configuracoes para liberar esta funcionalidade.
+                A geração usa o Google Gemini. Cole sua chave em Configurações para liberar esta funcionalidade.
               </Text>
               <View style={{ height: spacing.sm }} />
-              <Button title="Abrir Configuracoes" onPress={abrirConfig} variant="outline" />
+              <Button title="Abrir Configurações" onPress={abrirConfig} variant="outline" />
             </Card>
           ) : null}
 
+          <View style={styles.secaoWrap}>
+            <Text style={styles.secao}>1. Material de estudo</Text>
+            <View style={styles.secaoRegua} />
+          </View>
           <Card style={styles.bloco}>
-            <Text style={styles.secaoTitulo}>1. Material de estudo</Text>
             <Text style={styles.secaoDica}>
-              Cole resumos, notas de aula, trechos de livro ou diretrizes clinicas. Ate cerca de 60 mil caracteres.
+              Cole resumos, notas de aula, trechos de livro ou diretrizes clínicas. Até cerca de 60 mil caracteres.
             </Text>
             <TextInput
               multiline
@@ -245,9 +248,11 @@ export function AIGenerateScreen() {
             </Text>
           </Card>
 
+          <View style={styles.secaoWrap}>
+            <Text style={styles.secao}>2. Parâmetros</Text>
+            <View style={styles.secaoRegua} />
+          </View>
           <Card style={styles.bloco}>
-            <Text style={styles.secaoTitulo}>2. Parametros</Text>
-
             <Text style={styles.subLabel}>Quantidade</Text>
             <View style={styles.chipsLinha}>
               {QUANTIDADES.map((q) => (
@@ -302,8 +307,10 @@ export function AIGenerateScreen() {
 
           {gerando ? (
             <Card style={styles.cardGerando}>
-              <ActivityIndicator color={colors.primary} />
-              <Text style={styles.gerandoTexto}>A IA esta lendo seu material e formulando os cartoes...</Text>
+              <ActivityIndicator color={colors.primaryDeep} />
+              <Text style={styles.gerandoTexto}>
+                A IA está lendo seu material e formulando os cartões...
+              </Text>
             </Card>
           ) : (
             <Button
@@ -334,43 +341,125 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
   },
   voltar: { paddingVertical: 6 },
-  voltarTexto: { color: colors.primary, fontSize: 14, fontWeight: '600' },
-  topoTitulo: { fontSize: 15, fontWeight: '700', color: colors.text },
-  topoContador: { fontSize: 13, color: colors.textMuted, fontWeight: '600' },
-  scroll: { padding: spacing.lg, paddingBottom: spacing.xl },
-  hero: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    alignItems: 'flex-start',
-    marginBottom: spacing.lg,
+  voltarTexto: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 13,
+    color: colors.primaryDeep,
+    letterSpacing: 0.2,
   },
-  heroEmoji: { fontSize: 32 },
-  titulo: { fontSize: 22, fontWeight: '800', color: colors.text },
-  subtitulo: { fontSize: 13, color: colors.textMuted, marginTop: 4, lineHeight: 19 },
-  destinoTexto: { fontSize: 12, color: colors.textMuted, marginTop: 6 },
-  destinoNome: { color: colors.primary, fontWeight: '700' },
+  topoTitulo: {
+    fontFamily: fonts.display,
+    fontSize: 16,
+    color: colors.text,
+    letterSpacing: -0.2,
+  },
+  topoContador: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 12,
+    color: colors.textMuted,
+    letterSpacing: 0.6,
+  },
+  scroll: { padding: spacing.lg, paddingBottom: spacing.xl },
+  eyebrow: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 10,
+    letterSpacing: 1.8,
+    color: colors.textSoft,
+    textTransform: 'uppercase',
+    marginBottom: 6,
+  },
+  titulo: {
+    fontFamily: fonts.display,
+    fontSize: 28,
+    color: colors.text,
+    letterSpacing: -0.5,
+    lineHeight: 32,
+  },
+  subtitulo: {
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.textMuted,
+    marginTop: 6,
+    lineHeight: 21,
+  },
+  destinoTexto: {
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textMuted,
+    marginTop: spacing.sm,
+    letterSpacing: 0.4,
+  },
+  destinoNome: {
+    fontFamily: fonts.bodySemiBold,
+    color: colors.primaryDeep,
+  },
   alerta: {
-    backgroundColor: '#FFF6E4',
-    borderColor: '#F2C066',
+    backgroundColor: colors.amberSoft,
+    borderColor: colors.amber,
+    marginTop: spacing.md,
     marginBottom: spacing.md,
   },
-  alertaTitulo: { fontSize: 14, fontWeight: '700', color: '#7A4B00', marginBottom: 4 },
-  alertaTexto: { fontSize: 12, color: '#7A4B00', lineHeight: 18 },
+  alertaTitulo: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 14,
+    color: colors.amber,
+    marginBottom: 4,
+    letterSpacing: 0.2,
+  },
+  alertaTexto: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: '#7A4B00',
+    lineHeight: 19,
+  },
+  secaoWrap: { marginTop: spacing.xl, marginBottom: spacing.sm },
+  secao: {
+    fontFamily: fonts.display,
+    fontSize: 18,
+    color: colors.text,
+    letterSpacing: -0.2,
+    marginBottom: 6,
+  },
+  secaoRegua: {
+    width: 32,
+    height: 2,
+    backgroundColor: colors.amber,
+  },
   bloco: { marginBottom: spacing.md },
-  secaoTitulo: { fontSize: 15, fontWeight: '700', color: colors.text, marginBottom: 4 },
-  secaoDica: { fontSize: 12, color: colors.textMuted, marginBottom: spacing.sm, lineHeight: 17 },
+  secaoDica: {
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textMuted,
+    marginBottom: spacing.sm,
+    lineHeight: 18,
+  },
   materialInput: {
     minHeight: 140,
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 10,
+    borderRadius: radii.md,
     padding: spacing.md,
     fontSize: 14,
+    fontFamily: fonts.body,
     color: colors.text,
-    backgroundColor: '#FAFBFC',
+    backgroundColor: colors.background,
   },
-  contador: { fontSize: 11, color: colors.textSoft, marginTop: 4, textAlign: 'right' },
-  subLabel: { fontSize: 12, color: colors.textMuted, marginBottom: 6, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  contador: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 11,
+    color: colors.textSoft,
+    marginTop: 4,
+    textAlign: 'right',
+    letterSpacing: 0.4,
+  },
+  subLabel: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 11,
+    color: colors.textMuted,
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+  },
   chipsLinha: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   chip: {
     paddingHorizontal: 16,
@@ -389,11 +478,19 @@ const styles = StyleSheet.create({
     backgroundColor: colors.card,
   },
   chipAtivo: {
-    borderColor: colors.primary,
-    backgroundColor: '#E6EFFB',
+    borderColor: colors.primaryDeep,
+    backgroundColor: colors.primarySoft,
   },
-  chipTexto: { fontSize: 13, fontWeight: '600', color: colors.textMuted },
-  chipTextoAtivo: { color: colors.primary },
+  chipTexto: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 13,
+    color: colors.textMuted,
+    letterSpacing: 0.3,
+  },
+  chipTextoAtivo: {
+    fontFamily: fonts.bodySemiBold,
+    color: colors.primaryDeep,
+  },
   cardGerando: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -401,14 +498,42 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     flexDirection: 'row',
   },
-  gerandoTexto: { flex: 1, color: colors.textMuted, fontSize: 13 },
-  aviso: { fontSize: 12, color: colors.warning, marginTop: spacing.sm, textAlign: 'center' },
-  erro: { color: colors.danger, fontSize: 13, marginTop: spacing.md, textAlign: 'center' },
+  gerandoTexto: {
+    flex: 1,
+    fontFamily: fonts.body,
+    color: colors.textMuted,
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  aviso: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 12,
+    color: colors.warning,
+    marginTop: spacing.sm,
+    textAlign: 'center',
+  },
+  erro: {
+    fontFamily: fonts.bodyMedium,
+    color: colors.danger,
+    fontSize: 13,
+    marginTop: spacing.md,
+    textAlign: 'center',
+  },
   // Revisao
-  cardRev: { marginBottom: spacing.sm },
+  cardRev: { marginBottom: spacing.sm, marginTop: spacing.md },
   cardRevInativo: { opacity: 0.5 },
-  cardRevTopo: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },
-  cardRevIndice: { fontSize: 11, color: colors.textMuted, fontWeight: '700' },
+  cardRevTopo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  cardRevIndice: {
+    fontFamily: fonts.display,
+    fontSize: 14,
+    color: colors.amber,
+    letterSpacing: -0.2,
+  },
   toggleWrap: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   toggle: {
     width: 20,
@@ -420,18 +545,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  toggleAtivo: { backgroundColor: colors.primary, borderColor: colors.primary },
-  toggleCheck: { color: '#fff', fontSize: 12, fontWeight: '800', marginTop: -1 },
-  toggleLabel: { fontSize: 12, color: colors.textMuted, fontWeight: '600' },
-  label: { fontSize: 11, color: colors.textMuted, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 },
+  toggleAtivo: {
+    backgroundColor: colors.primaryDeep,
+    borderColor: colors.primaryDeep,
+  },
+  toggleCheck: {
+    fontFamily: fonts.bodyBold,
+    color: '#fff',
+    fontSize: 12,
+    marginTop: -1,
+  },
+  toggleLabel: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 12,
+    color: colors.textMuted,
+    letterSpacing: 0.3,
+  },
+  label: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 10,
+    color: colors.textSoft,
+    textTransform: 'uppercase',
+    letterSpacing: 1.4,
+    marginBottom: 4,
+  },
   inputMulti: {
     borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: 8,
+    borderRadius: radii.sm,
     padding: 10,
     fontSize: 14,
+    fontFamily: fonts.body,
     color: colors.text,
-    backgroundColor: '#FAFBFC',
+    backgroundColor: colors.background,
     marginBottom: spacing.sm,
     minHeight: 44,
   },

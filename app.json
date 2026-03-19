@@ -9,15 +9,29 @@
       "android",
       "web"
     ],
+    "splash": {
+      "backgroundColor": "#FAF7F1",
+      "resizeMode": "contain"
+    },
     "android": {
       "package": "com.brunoosanes.flashcardsmedicina",
-      "versionCode": 1
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "backgroundColor": "#FAF7F1"
+      }
     },
     "web": {
       "bundler": "metro"
     },
     "plugins": [
-      "expo-font"
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FAF7F1",
+          "resizeMode": "contain"
+        }
+      ]
     ],
     "extra": {
       "eas": {

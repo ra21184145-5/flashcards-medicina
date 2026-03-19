@@ -8,6 +8,7 @@ import { Chip } from '../components/Chip';
 import { EmptyState } from '../components/EmptyState';
 import { useData } from '../context/DataContext';
 import { colors, spacing } from '../theme/colors';
+import { fonts } from '../theme/typography';
 import { StackNav } from '../navigation/types';
 
 export function GroupsScreen() {
@@ -17,7 +18,8 @@ export function GroupsScreen() {
   return (
     <ScreenContainer>
       <View style={styles.header}>
-        <Text style={styles.titulo}>Grupos de estudo</Text>
+        <Text style={styles.eyebrow}>GRUPOS DE ESTUDO</Text>
+        <Text style={styles.titulo}>Comunidade</Text>
         <Text style={styles.subtitulo}>
           Crie ou participe de grupos para compartilhar baralhos.
         </Text>
@@ -34,8 +36,8 @@ export function GroupsScreen() {
         }
         ListEmptyComponent={
           <EmptyState
-            titulo="Voce ainda nao esta em nenhum grupo"
-            descricao="Crie seu proprio grupo e convide colegas para estudar juntos."
+            titulo="Você ainda não está em nenhum grupo"
+            descricao="Crie seu próprio grupo e convide colegas para estudar juntos."
             icone="👥"
           />
         }
@@ -44,7 +46,7 @@ export function GroupsScreen() {
             <View style={styles.cabecalho}>
               <Text style={styles.nome}>{item.nome}</Text>
               <Chip
-                texto={item.requerAprovacao ? 'Aprovacao' : 'Aberto'}
+                texto={item.requerAprovacao ? 'Aprovação' : 'Aberto'}
                 tom={item.requerAprovacao ? 'aviso' : 'ok'}
               />
             </View>
@@ -55,7 +57,8 @@ export function GroupsScreen() {
             ) : null}
             <View style={styles.rodape}>
               <Text style={styles.meta}>
-                {item.membros.length} {item.membros.length === 1 ? 'membro' : 'membros'}
+                {item.membros.length}{' '}
+                {item.membros.length === 1 ? 'membro' : 'membros'}
               </Text>
             </View>
           </Card>
@@ -69,24 +72,63 @@ const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.background },
   header: {
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
+    paddingTop: spacing.lg,
     paddingBottom: spacing.sm,
   },
-  titulo: { fontSize: 24, fontWeight: '800', color: colors.text },
-  subtitulo: { fontSize: 13, color: colors.textMuted, marginTop: 4 },
+  eyebrow: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 10,
+    letterSpacing: 1.8,
+    color: colors.textSoft,
+    textTransform: 'uppercase',
+    marginBottom: 6,
+  },
+  titulo: {
+    fontFamily: fonts.display,
+    fontSize: 28,
+    color: colors.text,
+    letterSpacing: -0.5,
+    lineHeight: 32,
+  },
+  subtitulo: {
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.textMuted,
+    marginTop: 6,
+    lineHeight: 21,
+  },
   lista: { padding: spacing.lg, paddingTop: spacing.sm, paddingBottom: 120 },
   cabecalho: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: spacing.sm,
   },
-  nome: { fontSize: 16, fontWeight: '700', color: colors.text, flex: 1 },
-  descricao: { fontSize: 13, color: colors.textMuted, marginTop: 4, lineHeight: 18 },
+  nome: {
+    fontFamily: fonts.display,
+    fontSize: 18,
+    color: colors.text,
+    letterSpacing: -0.2,
+    flex: 1,
+  },
+  descricao: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.textMuted,
+    marginTop: 6,
+    lineHeight: 19,
+  },
   rodape: {
     marginTop: spacing.md,
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
-  meta: { fontSize: 12, color: colors.textMuted },
+  meta: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 11,
+    color: colors.textMuted,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+  },
 });

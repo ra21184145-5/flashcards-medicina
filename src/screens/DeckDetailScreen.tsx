@@ -8,7 +8,8 @@ import { Chip } from '../components/Chip';
 import { EmptyState } from '../components/EmptyState';
 import { useData } from '../context/DataContext';
 import { cardsParaRevisar } from '../services/spacedRepetition';
-import { colors, spacing } from '../theme/colors';
+import { colors, radii, spacing } from '../theme/colors';
+import { fonts } from '../theme/typography';
 import { StackNav, StackRoute } from '../navigation/types';
 
 function confirmar(titulo: string, mensagem: string, onOk: () => void) {
@@ -61,7 +62,9 @@ export function DeckDetailScreen() {
   return (
     <ScreenContainer>
       <View style={styles.topo}>
-        <Button title="← Voltar" variant="ghost" onPress={() => nav.goBack()} style={styles.voltar} />
+        <Pressable onPress={() => nav.goBack()} hitSlop={8} style={styles.voltar}>
+          <Text style={styles.voltarTexto}>← Voltar</Text>
+        </Pressable>
       </View>
 
       <FlatList
@@ -70,6 +73,7 @@ export function DeckDetailScreen() {
         contentContainerStyle={styles.lista}
         ListHeaderComponent={
           <View>
+            <Text style={styles.eyebrow}>Baralho · {deck.privacidade}</Text>
             <View style={styles.cabecalho}>
               <Text style={styles.titulo}>{deck.nome}</Text>
               <Chip privacidade={deck.privacidade} />
@@ -81,10 +85,12 @@ export function DeckDetailScreen() {
                 <Text style={styles.statNumero}>{cards.length}</Text>
                 <Text style={styles.statLabel}>Total</Text>
               </View>
+              <View style={styles.statDivider} />
               <View style={styles.statBox}>
                 <Text style={[styles.statNumero, { color: colors.warning }]}>{pendentes}</Text>
                 <Text style={styles.statLabel}>A revisar</Text>
               </View>
+              <View style={styles.statDivider} />
               <View style={styles.statBox}>
                 <Text style={[styles.statNumero, { color: colors.accent }]}>
                   {cards.length - pendentes}
@@ -109,7 +115,7 @@ export function DeckDetailScreen() {
                 />
                 <View style={{ width: spacing.sm }} />
                 <Button
-                  title="✨ Gerar com IA"
+                  title="Gerar com IA"
                   variant="outline"
                   onPress={() => nav.navigate('AIGenerate', { deckId })}
                   style={styles.botaoFlex}
@@ -133,7 +139,10 @@ export function DeckDetailScreen() {
               </View>
             </View>
 
-            <Text style={styles.secao}>Flashcards</Text>
+            <View style={styles.secaoWrap}>
+              <Text style={styles.secao}>Flashcards</Text>
+              <View style={styles.secaoRegua} />
+            </View>
           </View>
         }
         ListEmptyComponent={
@@ -145,14 +154,16 @@ export function DeckDetailScreen() {
         }
         renderItem={({ item }) => (
           <Card style={styles.cardItem}>
+            <Text style={styles.labelFrente}>Pergunta</Text>
             <Text style={styles.frente}>{item.frente}</Text>
             <View style={styles.linha} />
+            <Text style={styles.labelVerso}>Resposta</Text>
             <Text style={styles.verso} numberOfLines={3}>
               {item.verso}
             </Text>
             <View style={styles.cardRodape}>
               <Text style={styles.cardMeta}>
-                Repeticoes: {item.repeticoes} • Facilidade: {item.facilidade.toFixed(2)}
+                Repetições: {item.repeticoes} · Facilidade: {item.facilidade.toFixed(2)}
               </Text>
               <View style={styles.cardAcoes}>
                 <Pressable
@@ -179,49 +190,154 @@ export function DeckDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: colors.background },
-  topo: { paddingHorizontal: spacing.sm, paddingTop: spacing.xs },
-  voltar: { alignSelf: 'flex-start', paddingHorizontal: spacing.md },
+  topo: { paddingHorizontal: spacing.lg, paddingTop: spacing.xs },
+  voltar: {
+    alignSelf: 'flex-start',
+    paddingVertical: 6,
+    paddingRight: spacing.md,
+  },
+  voltarTexto: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 13,
+    color: colors.primaryDeep,
+    letterSpacing: 0.2,
+  },
   lista: { padding: spacing.lg, paddingTop: spacing.sm, paddingBottom: 120 },
+  eyebrow: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 10,
+    letterSpacing: 1.8,
+    color: colors.textSoft,
+    textTransform: 'uppercase',
+    marginBottom: 6,
+  },
   cabecalho: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: spacing.sm,
   },
-  titulo: { fontSize: 22, fontWeight: '800', color: colors.text, flex: 1 },
-  descricao: { fontSize: 14, color: colors.textMuted, marginTop: 6, lineHeight: 20 },
+  titulo: {
+    fontFamily: fonts.display,
+    fontSize: 30,
+    color: colors.text,
+    letterSpacing: -0.6,
+    flex: 1,
+    lineHeight: 34,
+  },
+  descricao: {
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.textMuted,
+    marginTop: spacing.sm,
+    lineHeight: 22,
+  },
   stats: {
     flexDirection: 'row',
     marginTop: spacing.lg,
     backgroundColor: colors.card,
-    borderRadius: 14,
+    borderRadius: radii.lg,
     borderWidth: 1,
     borderColor: colors.border,
     paddingVertical: spacing.md,
+    alignItems: 'center',
   },
   statBox: { flex: 1, alignItems: 'center' },
-  statNumero: { fontSize: 22, fontWeight: '800', color: colors.primary },
-  statLabel: { fontSize: 11, color: colors.textMuted, marginTop: 2, textTransform: 'uppercase', letterSpacing: 0.5 },
+  statDivider: {
+    width: 1,
+    height: 28,
+    backgroundColor: colors.border,
+  },
+  statNumero: {
+    fontFamily: fonts.display,
+    fontSize: 26,
+    color: colors.primaryDeep,
+    letterSpacing: -0.5,
+    lineHeight: 30,
+  },
+  statLabel: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 10,
+    color: colors.textMuted,
+    marginTop: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+  },
   acoes: { marginTop: spacing.lg },
   linhaBotoes: { flexDirection: 'row' },
   botaoFlex: { flex: 1 },
-  secao: { fontSize: 15, fontWeight: '700', color: colors.text, marginTop: spacing.xl, marginBottom: spacing.sm },
+  secaoWrap: { marginTop: spacing.xl, marginBottom: spacing.md },
+  secao: {
+    fontFamily: fonts.display,
+    fontSize: 18,
+    color: colors.text,
+    letterSpacing: -0.2,
+    marginBottom: 6,
+  },
+  secaoRegua: {
+    width: 32,
+    height: 2,
+    backgroundColor: colors.amber,
+  },
   cardItem: { marginBottom: spacing.sm },
-  frente: { fontSize: 15, color: colors.text, fontWeight: '600' },
+  labelFrente: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 10,
+    letterSpacing: 1.4,
+    color: colors.textSoft,
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  labelVerso: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 10,
+    letterSpacing: 1.4,
+    color: colors.textSoft,
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  frente: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 15,
+    color: colors.text,
+    lineHeight: 21,
+  },
   linha: { height: 1, backgroundColor: colors.border, marginVertical: spacing.sm },
-  verso: { fontSize: 14, color: colors.textMuted, lineHeight: 20 },
+  verso: {
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.textMuted,
+    lineHeight: 21,
+  },
   cardRodape: {
-    marginTop: spacing.sm,
+    marginTop: spacing.md,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: spacing.sm,
+    paddingTop: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
   },
-  cardMeta: { fontSize: 11, color: colors.textSoft, flex: 1 },
+  cardMeta: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 10,
+    color: colors.textSoft,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    flex: 1,
+  },
   cardAcoes: { flexDirection: 'row', gap: spacing.sm },
   acaoBtn: { paddingVertical: 4, paddingHorizontal: 8, borderRadius: 6 },
   acaoBtnPressed: { opacity: 0.6 },
-  acaoTextoEditar: { fontSize: 12, color: colors.primary, fontWeight: '600' },
-  acaoTextoExcluir: { fontSize: 12, color: colors.danger, fontWeight: '600' },
+  acaoTextoEditar: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 12,
+    color: colors.primaryDeep,
+  },
+  acaoTextoExcluir: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 12,
+    color: colors.danger,
+  },
 });
