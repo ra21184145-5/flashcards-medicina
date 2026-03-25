@@ -4,6 +4,12 @@ Aplicativo Android de flashcards com revisão espaçada, voltado a estudantes e 
 
 Este repositório faz parte do **TCC II** do curso de Engenharia de Software da Unicesumar (autor: Bruno Ubirajara Torres Osanes).
 
+## Acesso rápido
+
+- **App web (sem instalar):** https://flashcards-medicina.web.app
+- **APK Android:** [Releases → v1.0.0](https://github.com/brunoosanes/flashcards-medicina/releases/latest)
+- **Modo demo:** na tela de login, toque em *"Explorar como convidado"* para testar sem cadastro.
+
 ## Funcionalidades
 
 - Cadastro e login com Firebase Authentication (e-mail e senha)
