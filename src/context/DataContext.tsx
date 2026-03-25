@@ -74,8 +74,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       setReviewLogs(logs);
       setConfig(cfg);
 
-      // 2) Se ha usuario autenticado, puxa o estado remoto e atualiza.
+      // 2) Se ha usuario autenticado (nao demo), puxa estado remoto e atualiza.
       if (!user) return;
+      if (user.id.startsWith('demo-')) return;
       try {
         const remoto = await cloudSync.pullUserData(user.id);
         if (cancelado) return;

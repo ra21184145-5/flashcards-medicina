@@ -25,7 +25,7 @@ WebBrowser.maybeCompleteAuthSession();
 
 export function LoginScreen() {
   const nav = useNavigation<StackNav>();
-  const { entrar, entrarComGoogle } = useAuth();
+  const { entrar, entrarComGoogle, entrarComoDemo } = useAuth();
   const { width } = useWindowDimensions();
   const wide = width >= 960;
 
@@ -34,6 +34,7 @@ export function LoginScreen() {
   const [erro, setErro] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingGoogle, setLoadingGoogle] = useState(false);
+  const [loadingDemo, setLoadingDemo] = useState(false);
 
   const googleHabilitado = !!WEB_CLIENT_ID;
   const [, response, promptAsync] = Google.useIdTokenAuthRequest({
@@ -82,6 +83,17 @@ export function LoginScreen() {
     } catch (e: any) {
       setErro(e?.message ?? 'Nao foi possivel iniciar o login com Google.');
       setLoadingGoogle(false);
+    }
+  }
+
+  async function handleDemo() {
+    setErro('');
+    setLoadingDemo(true);
+    try {
+      await entrarComoDemo();
+    } catch (e: any) {
+      setErro(e?.message ?? 'Nao foi possivel entrar no modo demo.');
+      setLoadingDemo(false);
     }
   }
 
@@ -200,6 +212,19 @@ export function LoginScreen() {
             onPress={() => nav.navigate('Register')}
           >
             Criar agora
+          </Text>
+        </View>
+
+        <View style={styles.demoLinha}>
+          <Text style={styles.demoLabel}>PARA AVALIADORES</Text>
+          <Text
+            style={styles.demoLink}
+            onPress={loadingDemo ? undefined : handleDemo}
+          >
+            {loadingDemo ? 'Preparando...' : 'Explorar como convidado →'}
+          </Text>
+          <Text style={styles.demoHint}>
+            Sem cadastro. Dados ficam apenas neste dispositivo.
           </Text>
         </View>
       </View>
@@ -478,6 +503,32 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodySemiBold,
     fontSize: 13,
     color: colors.primaryDeep,
+  },
+  demoLinha: {
+    marginTop: spacing.lg,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    alignItems: 'center',
+  },
+  demoLabel: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 9,
+    letterSpacing: 1.8,
+    color: colors.textSoft,
+    marginBottom: 6,
+  },
+  demoLink: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 13,
+    color: colors.amber,
+    letterSpacing: 0.2,
+  },
+  demoHint: {
+    fontFamily: fonts.body,
+    fontSize: 11,
+    color: colors.textSoft,
+    marginTop: 4,
   },
 
   epigrafe: {
