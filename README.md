@@ -7,7 +7,7 @@ Este repositório faz parte do **TCC II** do curso de Engenharia de Software da 
 ## Acesso rápido
 
 - **App web (sem instalar):** https://flashcards-medicina.web.app
-- **APK Android:** [Releases → v1.0.0](https://github.com/brunoosanes/flashcards-medicina/releases/latest)
+- **APK Android:** [Releases → v1.0.0](https://github.com/ra21184145-5/flashcards-medicina/releases/latest)
 - **Modo demo:** na tela de login, toque em *"Explorar como convidado"* para testar sem cadastro.
 
 ## Funcionalidades
