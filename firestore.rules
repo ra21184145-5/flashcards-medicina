@@ -8,9 +8,11 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Perfil e configuracoes do usuario.
+    // Perfil e configuracoes do usuario. Qualquer autenticado pode ler o
+    // perfil publico (nome/email) para apresentar membros de grupo na UI.
     match /users/{uid} {
-      allow read, write: if request.auth != null && request.auth.uid == uid;
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == uid;
     }
 
     // Baralhos: dono tem acesso total; baralhos publicos sao legiveis por todos.
@@ -35,13 +37,41 @@ service cloud.firestore {
         resource.data.donoId == request.auth.uid;
     }
 
-    // Grupos: leitura por qualquer autenticado; escrita restrita ao dono.
+    // Grupos: leitura por qualquer autenticado; criacao pelo dono; remocao
+    // somente pelo dono. Atualizacoes tem duas permissoes:
+    //   (a) o dono pode alterar qualquer campo;
+    //   (b) qualquer autenticado pode se auto-incluir/remover nos arrays
+    //       membros/pendentes (entrar/sair/pedir aprovacao), desde que os
+    //       demais campos permanecam inalterados.
     match /grupos/{grupoId} {
+      function souDono() {
+        return resource.data.donoId == request.auth.uid;
+      }
+      function soMudouListaDeParticipacao() {
+        // Apenas os campos de participacao ('membros'/'pendentes') podem
+        // mudar em updates feitos por nao-donos.
+        return request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['membros', 'pendentes']);
+      }
+      function souEuNaListaNova() {
+        let diffAdd = request.resource.data.membros.toSet().difference(resource.data.membros.toSet());
+        let diffAddP = request.resource.data.pendentes.toSet().difference(resource.data.pendentes.toSet());
+        return diffAdd.hasOnly([request.auth.uid]) || diffAddP.hasOnly([request.auth.uid]);
+      }
+      function souEuNaListaRemovida() {
+        let diffRem = resource.data.membros.toSet().difference(request.resource.data.membros.toSet());
+        let diffRemP = resource.data.pendentes.toSet().difference(request.resource.data.pendentes.toSet());
+        return diffRem.hasOnly([request.auth.uid]) || diffRemP.hasOnly([request.auth.uid]);
+      }
+
       allow read: if request.auth != null;
       allow create: if request.auth != null &&
         request.resource.data.donoId == request.auth.uid;
-      allow update, delete: if request.auth != null &&
-        resource.data.donoId == request.auth.uid;
+      allow delete: if request.auth != null && souDono();
+      allow update: if request.auth != null && (
+        souDono() ||
+        (soMudouListaDeParticipacao() && (souEuNaListaNova() || souEuNaListaRemovida()))
+      );
     }
 
     // Logs de revisao: somente o dono.

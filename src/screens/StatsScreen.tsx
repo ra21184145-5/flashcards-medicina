@@ -34,6 +34,32 @@ function agruparPorDia(logs: ReviewLog[], dias: number): { label: string; total:
   return buckets.map(({ label, total }) => ({ label, total }));
 }
 
+interface ForecastDia {
+  label: string;
+  total: number;
+  isHoje: boolean;
+}
+
+function previsaoProximosDias(cards: { proximaRevisao: number }[], dias: number): ForecastDia[] {
+  const hojeInicio = inicioDoDia(Date.now());
+  const buckets: ForecastDia[] = [];
+  for (let i = 0; i < dias; i++) {
+    const d = new Date(hojeInicio + i * UM_DIA);
+    buckets.push({ label: DIAS_SEMANA[d.getDay()], total: 0, isHoje: i === 0 });
+  }
+  for (const card of cards) {
+    const inicio = inicioDoDia(card.proximaRevisao);
+    const diff = Math.round((inicio - hojeInicio) / UM_DIA);
+    if (diff <= 0) {
+      // tudo em atraso conta no bucket de hoje
+      buckets[0].total += 1;
+    } else if (diff < dias) {
+      buckets[diff].total += 1;
+    }
+  }
+  return buckets;
+}
+
 function calcularStreak(logs: ReviewLog[]): number {
   if (logs.length === 0) return 0;
   const diasComRevisao = new Set(logs.map((l) => inicioDoDia(l.timestamp)));
@@ -66,7 +92,23 @@ export function StatsScreen() {
     const aprendendo = cards.filter((c) => c.repeticoes > 0 && c.intervalo < 21).length;
     const maduros = cards.filter((c) => c.intervalo >= 21).length;
 
-    return { semana, totalSemana, maxSemana, taxaAcerto, streak, novos, aprendendo, maduros };
+    const forecast = previsaoProximosDias(cards, 7);
+    const maxForecast = Math.max(1, ...forecast.map((d) => d.total));
+    const totalForecast = forecast.reduce((acc, d) => acc + d.total, 0);
+
+    return {
+      semana,
+      totalSemana,
+      maxSemana,
+      taxaAcerto,
+      streak,
+      novos,
+      aprendendo,
+      maduros,
+      forecast,
+      maxForecast,
+      totalForecast,
+    };
   }, [reviewLogs, cards]);
 
   return (
@@ -134,6 +176,41 @@ export function StatsScreen() {
               );
             })}
           </View>
+        </Card>
+
+        <View style={styles.secaoWrap}>
+          <Text style={styles.secao}>Previsão dos próximos 7 dias</Text>
+          <View style={styles.secaoRegua} />
+        </View>
+        <Card style={styles.bloco}>
+          <Text style={styles.blocoSubtitulo}>
+            Cartões que o algoritmo já agendou para cada dia da próxima semana.
+            Em atraso aparece no bucket de hoje.
+          </Text>
+          <View style={styles.grafico}>
+            {resumo.forecast.map((dia, idx) => {
+              const alturaRel = (dia.total / resumo.maxForecast) * 100;
+              return (
+                <View key={idx} style={styles.colunaWrap}>
+                  <View style={styles.colunaArea}>
+                    <View
+                      style={[
+                        styles.coluna,
+                        { height: `${alturaRel}%` },
+                        dia.isHoje ? styles.colunaHoje : styles.colunaForecast,
+                        dia.total === 0 && styles.colunaVazia,
+                      ]}
+                    />
+                  </View>
+                  <Text style={styles.colunaValor}>{dia.total}</Text>
+                  <Text style={styles.colunaLabel}>{dia.isHoje ? 'Hoje' : dia.label}</Text>
+                </View>
+              );
+            })}
+          </View>
+          <Text style={styles.notaRodape}>
+            Total previsto: <Text style={styles.legendaNum}>{resumo.totalForecast}</Text> cartões nos próximos 7 dias.
+          </Text>
         </Card>
 
         <View style={styles.secaoWrap}>
@@ -310,6 +387,7 @@ const styles = StyleSheet.create({
     minHeight: 4,
   },
   colunaHoje: { backgroundColor: colors.amber },
+  colunaForecast: { backgroundColor: colors.accent },
   colunaVazia: { backgroundColor: colors.border },
   colunaValor: {
     fontFamily: fonts.display,

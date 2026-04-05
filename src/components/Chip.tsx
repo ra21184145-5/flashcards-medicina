@@ -7,7 +7,7 @@ import { Privacy } from '../types';
 interface ChipProps {
   privacidade?: Privacy;
   texto?: string;
-  tom?: 'info' | 'ok' | 'aviso' | 'neutro';
+  tom?: 'info' | 'ok' | 'aviso' | 'neutro' | 'primario';
 }
 
 const tons = {
@@ -15,6 +15,7 @@ const tons = {
   ok: { bg: colors.accentSoft, fg: '#0A8055' },
   aviso: { bg: colors.amberSoft, fg: colors.amber },
   neutro: { bg: colors.surfaceMuted, fg: colors.textMuted },
+  primario: { bg: colors.primaryDeep, fg: '#FFFFFF' },
 };
 
 function rotulo(p?: Privacy): string {

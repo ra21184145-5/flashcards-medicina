@@ -2,6 +2,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  documentId,
   getDoc,
   getDocs,
   query,
@@ -70,18 +71,25 @@ export const cloudSync = {
   },
 
   async pullUserData(uid: string) {
-    const [decksSnap, cardsSnap, gruposSnap, logsSnap, userSnap] = await Promise.all([
+    // Grupos sao puxados em duas queries: os em que o usuario e membro
+    // e os em que e pendente (para apresentar status na tela de detalhe).
+    const [decksSnap, cardsSnap, grMembSnap, grPendSnap, logsSnap, userSnap] = await Promise.all([
       getDocs(query(collection(db, 'decks'), where('donoId', '==', uid))),
       getDocs(query(collection(db, 'cards'), where('donoId', '==', uid))),
       getDocs(query(collection(db, 'grupos'), where('membros', 'array-contains', uid))),
+      getDocs(query(collection(db, 'grupos'), where('pendentes', 'array-contains', uid))),
       getDocs(query(collection(db, 'reviewLogs'), where('donoId', '==', uid))),
       getDoc(doc(db, 'users', uid)),
     ]);
 
+    const mapaGrupos = new Map<string, Grupo>();
+    for (const s of grMembSnap.docs) mapaGrupos.set(s.id, s.data() as Grupo);
+    for (const s of grPendSnap.docs) mapaGrupos.set(s.id, s.data() as Grupo);
+
     return {
       decks: decksSnap.docs.map((d) => d.data() as Deck),
       cards: cardsSnap.docs.map((d) => d.data() as Flashcard),
-      grupos: gruposSnap.docs.map((d) => d.data() as Grupo),
+      grupos: Array.from(mapaGrupos.values()),
       reviewLogs: logsSnap.docs.map((d) => d.data() as ReviewLog),
       configRemoto: userSnap.exists() ? (userSnap.data().config as Partial<Configuracoes> | undefined) : undefined,
     };
@@ -98,5 +106,44 @@ export const cloudSync = {
       { profile: { nome, email, criadoEm: Date.now() } },
       { merge: true }
     );
+  },
+
+  async salvarGrupo(grupo: Grupo) {
+    await setDoc(doc(db, 'grupos', grupo.id), grupo as any);
+  },
+
+  async buscarGrupoPorCodigo(codigo: string): Promise<Grupo | null> {
+    const snap = await getDocs(
+      query(collection(db, 'grupos'), where('codigoConvite', '==', codigo.toUpperCase()))
+    );
+    if (snap.empty) return null;
+    return snap.docs[0].data() as Grupo;
+  },
+
+  async buscarGrupoPorId(grupoId: string): Promise<Grupo | null> {
+    const snap = await getDoc(doc(db, 'grupos', grupoId));
+    return snap.exists() ? (snap.data() as Grupo) : null;
+  },
+
+  async buscarPerfis(
+    uids: string[]
+  ): Promise<Record<string, { nome: string; email: string } | undefined>> {
+    if (uids.length === 0) return {};
+    // Firestore limita o operador 'in' a 30 valores; particionamos se preciso.
+    const unicos = Array.from(new Set(uids));
+    const mapa: Record<string, { nome: string; email: string } | undefined> = {};
+    for (let i = 0; i < unicos.length; i += 30) {
+      const fatia = unicos.slice(i, i + 30);
+      const snap = await getDocs(
+        query(collection(db, 'users'), where(documentId(), 'in', fatia))
+      );
+      for (const d of snap.docs) {
+        const data = d.data() as any;
+        if (data.profile) {
+          mapa[d.id] = { nome: data.profile.nome, email: data.profile.email };
+        }
+      }
+    }
+    return mapa;
   },
 };

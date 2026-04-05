@@ -38,6 +38,8 @@ export interface Grupo {
   donoId: string;
   requerAprovacao: boolean;
   membros: string[];
+  pendentes: string[]; // usuarios aguardando aprovacao (somente relevante em requerAprovacao=true)
+  codigoConvite: string; // 6 caracteres alfanumericos, compartilhavel
   criadoEm: number;
 }
 

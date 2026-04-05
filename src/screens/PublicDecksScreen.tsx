@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ScreenContainer } from '../components/ScreenContainer';
 import { Card } from '../components/Card';
 import { Chip } from '../components/Chip';
+import { Input } from '../components/Input';
 import { EmptyState } from '../components/EmptyState';
 import { useData } from '../context/DataContext';
 import { colors, spacing } from '../theme/colors';
@@ -16,6 +17,7 @@ export function PublicDecksScreen() {
   const { decks, listarDecksPublicosRemotos } = useData();
   const [remotos, setRemotos] = useState<Deck[]>([]);
   const [atualizando, setAtualizando] = useState(false);
+  const [termo, setTermo] = useState('');
 
   async function atualizar() {
     setAtualizando(true);
@@ -31,11 +33,18 @@ export function PublicDecksScreen() {
     atualizar();
   }, []);
 
-  // Une publicos locais + remotos, removendo duplicatas pelo id.
-  const mapa = new Map<string, Deck>();
-  for (const d of decks) if (d.privacidade === 'publico') mapa.set(d.id, d);
-  for (const d of remotos) if (!mapa.has(d.id)) mapa.set(d.id, d);
-  const publicos = Array.from(mapa.values());
+  const publicos = useMemo(() => {
+    const mapa = new Map<string, Deck>();
+    for (const d of decks) if (d.privacidade === 'publico') mapa.set(d.id, d);
+    for (const d of remotos) if (!mapa.has(d.id)) mapa.set(d.id, d);
+    const todos = Array.from(mapa.values());
+    const filtro = termo.trim().toLowerCase();
+    if (!filtro) return todos;
+    return todos.filter(
+      (d) =>
+        d.nome.toLowerCase().includes(filtro) || d.descricao.toLowerCase().includes(filtro)
+    );
+  }, [decks, remotos, termo]);
 
   return (
     <ScreenContainer>
@@ -45,6 +54,14 @@ export function PublicDecksScreen() {
         <Text style={styles.subtitulo}>
           Baralhos compartilhados pela comunidade de estudo.
         </Text>
+        <View style={{ marginTop: spacing.md }}>
+          <Input
+            placeholder="Buscar por assunto, disciplina, tema..."
+            value={termo}
+            onChangeText={setTermo}
+            autoCorrect={false}
+          />
+        </View>
       </View>
       <FlatList
         data={publicos}
@@ -53,8 +70,12 @@ export function PublicDecksScreen() {
         refreshControl={<RefreshControl refreshing={atualizando} onRefresh={atualizar} />}
         ListEmptyComponent={
           <EmptyState
-            titulo="Nenhum baralho público disponível"
-            descricao="Assim que a comunidade publicar baralhos, eles aparecerão aqui."
+            titulo={termo ? 'Nenhum baralho encontrado' : 'Nenhum baralho público disponível'}
+            descricao={
+              termo
+                ? 'Tente outro termo. A busca olha nome e descrição.'
+                : 'Assim que a comunidade publicar baralhos, eles aparecerão aqui.'
+            }
             icone="🌐"
           />
         }

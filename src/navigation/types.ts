@@ -10,6 +10,8 @@ export type RootStackParamList = {
   CreateFlashcard: { deckId: string; editId?: string };
   Study: { deckId: string };
   CreateGroup: undefined;
+  GroupDetail: { grupoId: string };
+  DiscoverGroups: undefined;
   AIGenerate: { deckId: string };
   Settings: undefined;
   Stats: undefined;

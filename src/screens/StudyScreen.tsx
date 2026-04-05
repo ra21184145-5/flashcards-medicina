@@ -18,6 +18,14 @@ const BOTOES: { q: Qualidade; label: string; cor: string; hint: string }[] = [
   { q: 5, label: 'Fácil', cor: '#0A8055', hint: 'sem esforço' },
 ];
 
+function formatarIntervalo(dias: number) {
+  if (dias <= 0) return 'hoje';
+  if (dias < 1) return '<1d';
+  if (dias < 30) return `${dias}d`;
+  if (dias < 365) return `${Math.round(dias / 30)}m`;
+  return `${Math.round(dias / 365)}a`;
+}
+
 export function StudyScreen() {
   const nav = useNavigation<StackNav>();
   const route = useRoute<StackRoute<'Study'>>();
@@ -35,6 +43,18 @@ export function StudyScreen() {
   const [revelou, setRevelou] = useState(false);
 
   const atual = fila[indice];
+
+  // Previsao do intervalo que cada botao de qualidade aplicaria ao card
+  // atual, para o usuario saber quando o card voltara antes de responder.
+  const previsoes = useMemo(() => {
+    if (!atual) return {} as Record<Qualidade, string>;
+    const mapa: Partial<Record<Qualidade, string>> = {};
+    for (const b of BOTOES) {
+      const simulado = calcularProximaRevisao(atual, b.q);
+      mapa[b.q] = formatarIntervalo(simulado.intervalo);
+    }
+    return mapa as Record<Qualidade, string>;
+  }, [atual?.id, atual?.repeticoes, atual?.facilidade, atual?.intervalo]);
 
   async function responder(qualidade: Qualidade) {
     if (!atual) return;
@@ -134,6 +154,7 @@ export function StudyScreen() {
                     pressed && { opacity: 0.85 },
                   ]}
                 >
+                  <Text style={styles.botaoIntervalo}>{previsoes[b.q]}</Text>
                   <Text style={styles.botaoTexto}>{b.label}</Text>
                   <Text style={styles.botaoHint}>{b.hint}</Text>
                 </Pressable>
@@ -278,9 +299,17 @@ const styles = StyleSheet.create({
   botoes: { flexDirection: 'row', gap: spacing.sm },
   botaoQ: {
     flex: 1,
-    paddingVertical: 14,
+    paddingVertical: 12,
     borderRadius: radii.md,
     alignItems: 'center',
+  },
+  botaoIntervalo: {
+    fontFamily: fonts.displayItalic,
+    color: 'rgba(255,255,255,0.82)',
+    fontSize: 11,
+    letterSpacing: 0.8,
+    marginBottom: 2,
+    textTransform: 'uppercase',
   },
   botaoTexto: {
     fontFamily: fonts.bodyBold,

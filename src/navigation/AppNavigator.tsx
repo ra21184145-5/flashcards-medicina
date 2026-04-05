@@ -14,6 +14,8 @@ import { CreateFlashcardScreen } from '../screens/CreateFlashcardScreen';
 import { StudyScreen } from '../screens/StudyScreen';
 import { GroupsScreen } from '../screens/GroupsScreen';
 import { CreateGroupScreen } from '../screens/CreateGroupScreen';
+import { GroupDetailScreen } from '../screens/GroupDetailScreen';
+import { DiscoverGroupsScreen } from '../screens/DiscoverGroupsScreen';
 import { PublicDecksScreen } from '../screens/PublicDecksScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { AIGenerateScreen } from '../screens/AIGenerateScreen';
@@ -107,6 +109,8 @@ export function AppNavigator() {
               options={{ animation: 'slide_from_bottom' }}
             />
             <Stack.Screen name="CreateGroup" component={CreateGroupScreen} />
+            <Stack.Screen name="GroupDetail" component={GroupDetailScreen} />
+            <Stack.Screen name="DiscoverGroups" component={DiscoverGroupsScreen} />
             <Stack.Screen name="AIGenerate" component={AIGenerateScreen} />
             <Stack.Screen name="Settings" component={SettingsScreen} />
             <Stack.Screen name="Stats" component={StatsScreen} />

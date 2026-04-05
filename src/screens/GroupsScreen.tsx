@@ -7,12 +7,14 @@ import { Card } from '../components/Card';
 import { Chip } from '../components/Chip';
 import { EmptyState } from '../components/EmptyState';
 import { useData } from '../context/DataContext';
+import { useAuth } from '../context/AuthContext';
 import { colors, spacing } from '../theme/colors';
 import { fonts } from '../theme/typography';
 import { StackNav } from '../navigation/types';
 
 export function GroupsScreen() {
   const nav = useNavigation<StackNav>();
+  const { user } = useAuth();
   const { grupos } = useData();
 
   return (
@@ -21,7 +23,7 @@ export function GroupsScreen() {
         <Text style={styles.eyebrow}>GRUPOS DE ESTUDO</Text>
         <Text style={styles.titulo}>Comunidade</Text>
         <Text style={styles.subtitulo}>
-          Crie ou participe de grupos para compartilhar baralhos.
+          Crie um grupo, convide colegas por código ou entre em grupos já existentes.
         </Text>
       </View>
 
@@ -30,39 +32,67 @@ export function GroupsScreen() {
         keyExtractor={(g) => g.id}
         contentContainerStyle={styles.lista}
         ListHeaderComponent={
-          <View style={{ marginBottom: spacing.md }}>
-            <Button title="+ Criar grupo" onPress={() => nav.navigate('CreateGroup')} />
+          <View style={styles.acoes}>
+            <View style={{ flex: 1 }}>
+              <Button
+                title="+ Criar grupo"
+                onPress={() => nav.navigate('CreateGroup')}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Button
+                title="Descobrir"
+                onPress={() => nav.navigate('DiscoverGroups')}
+                variant="outline"
+              />
+            </View>
           </View>
         }
         ListEmptyComponent={
           <EmptyState
             titulo="Você ainda não está em nenhum grupo"
-            descricao="Crie seu próprio grupo e convide colegas para estudar juntos."
+            descricao="Crie um grupo novo ou use “Descobrir” para entrar em grupos de colegas por código."
             icone="👥"
           />
         }
-        renderItem={({ item }) => (
-          <Card style={{ marginBottom: spacing.md }}>
-            <View style={styles.cabecalho}>
-              <Text style={styles.nome}>{item.nome}</Text>
-              <Chip
-                texto={item.requerAprovacao ? 'Aprovação' : 'Aberto'}
-                tom={item.requerAprovacao ? 'aviso' : 'ok'}
-              />
-            </View>
-            {item.descricao ? (
-              <Text style={styles.descricao} numberOfLines={2}>
-                {item.descricao}
-              </Text>
-            ) : null}
-            <View style={styles.rodape}>
-              <Text style={styles.meta}>
-                {item.membros.length}{' '}
-                {item.membros.length === 1 ? 'membro' : 'membros'}
-              </Text>
-            </View>
-          </Card>
-        )}
+        renderItem={({ item }) => {
+          const ehAdmin = item.donoId === user?.id;
+          const pendentesAdmin = ehAdmin ? item.pendentes.length : 0;
+          const souPendente = !!user && item.pendentes.includes(user.id);
+          return (
+            <Card
+              onPress={() => nav.navigate('GroupDetail', { grupoId: item.id })}
+              style={{ marginBottom: spacing.md }}
+            >
+              <View style={styles.cabecalho}>
+                <Text style={styles.nome}>{item.nome}</Text>
+                <Chip
+                  texto={item.requerAprovacao ? 'Aprovação' : 'Aberto'}
+                  tom={item.requerAprovacao ? 'aviso' : 'ok'}
+                />
+              </View>
+              {item.descricao ? (
+                <Text style={styles.descricao} numberOfLines={2}>
+                  {item.descricao}
+                </Text>
+              ) : null}
+              <View style={styles.rodape}>
+                <Text style={styles.meta}>
+                  {item.membros.length}{' '}
+                  {item.membros.length === 1 ? 'membro' : 'membros'}
+                </Text>
+                {pendentesAdmin > 0 ? (
+                  <Chip
+                    texto={`${pendentesAdmin} pendente${pendentesAdmin > 1 ? 's' : ''}`}
+                    tom="aviso"
+                  />
+                ) : souPendente ? (
+                  <Chip texto="Aguardando" tom="aviso" />
+                ) : null}
+              </View>
+            </Card>
+          );
+        }}
       />
     </ScreenContainer>
   );
@@ -98,6 +128,11 @@ const styles = StyleSheet.create({
     lineHeight: 21,
   },
   lista: { padding: spacing.lg, paddingTop: spacing.sm, paddingBottom: 120 },
+  acoes: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
   cabecalho: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -123,6 +158,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: spacing.sm,
   },
   meta: {
     fontFamily: fonts.bodyMedium,
