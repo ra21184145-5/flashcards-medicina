@@ -446,7 +446,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       deckId: string,
       frente: string,
       verso: string,
-      diasAte: number = 0
+      estado: { intervalo: number; repeticoes: number; facilidade: number; diasAte: number }
     ): Flashcard => ({
       id: gerarId('card'),
       deckId,
@@ -454,24 +454,43 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       frente,
       verso,
       criadoEm: Date.now(),
-      intervalo: Math.max(0, diasAte),
-      repeticoes: diasAte > 0 ? 2 : 0,
-      facilidade: 2.5,
-      proximaRevisao: Date.now() + diasAte * 24 * 60 * 60 * 1000,
+      intervalo: estado.intervalo,
+      repeticoes: estado.repeticoes,
+      facilidade: estado.facilidade,
+      proximaRevisao: Date.now() + estado.diasAte * 24 * 60 * 60 * 1000,
     });
 
-    // Espalhamos proximaRevisao pelos proximos 7 dias para que o forecast
-    // tenha dados reais ao semear o modo demo.
+    // Espalha cards em estados de maturidade diferentes para que a tela de
+    // estudo mostre previsoes variadas nos botoes (1d / 3d / 6d / 15d ...)
+    // e para que o forecast de 7 dias tenha dados distribuidos.
     const novosCards: Flashcard[] = [
-      baseCard(deckCardio.id, 'Qual o mecanismo de acao do Losartan?', 'Bloqueador do receptor AT1 da angiotensina II (BRA).', 0),
-      baseCard(deckCardio.id, 'Qual classe a Amiodarona pertence?', 'Antiarritmico classe III - bloqueio de canais de K+.', 1),
-      baseCard(deckCardio.id, 'IECA e tosse seca: por que ocorre?', 'Acumulo de bradicinina pela inibicao da ECA.', 2),
-      baseCard(deckCardio.id, 'Qual a dose inicial do Enalapril em HAS?', '5 mg/dia, podendo ser ajustada ate 40 mg/dia.', 4),
-      baseCard(deckAnato.id, 'Por qual forame passa o nervo trigemeo V3?', 'Forame oval.', 0),
-      baseCard(deckAnato.id, 'Quais ossos compoem o nariz externo?', 'Nasais, frontal (parte), maxilas e cartilagens.', 3),
-      baseCard(deckAnato.id, 'O que passa pelo canal optico?', 'Nervo optico (II) e arteria oftalmica.', 6),
-      baseCard(deckMicro.id, 'Qual bacteria causa tuberculose?', 'Mycobacterium tuberculosis.', 1),
-      baseCard(deckMicro.id, 'Coloracao de Gram: gram-positivas coram de?', 'Roxo/violeta.', 5),
+      // Card em ciclo medio (intervalo 6d, rep 3) -> proximaRevisao hoje
+      baseCard(deckCardio.id, 'Qual o mecanismo de acao do Losartan?', 'Bloqueador do receptor AT1 da angiotensina II (BRA).',
+        { intervalo: 6, repeticoes: 3, facilidade: 2.5, diasAte: 0 }),
+      // Card maduro (intervalo 21d, rep 5) -> devido amanha
+      baseCard(deckCardio.id, 'Qual classe a Amiodarona pertence?', 'Antiarritmico classe III - bloqueio de canais de K+.',
+        { intervalo: 21, repeticoes: 5, facilidade: 2.6, diasAte: 1 }),
+      // Card em aprendizado (2 repeticoes, 3d)
+      baseCard(deckCardio.id, 'IECA e tosse seca: por que ocorre?', 'Acumulo de bradicinina pela inibicao da ECA.',
+        { intervalo: 3, repeticoes: 2, facilidade: 2.5, diasAte: 2 }),
+      // Card novo (nunca revisado)
+      baseCard(deckCardio.id, 'Qual a dose inicial do Enalapril em HAS?', '5 mg/dia, podendo ser ajustada ate 40 mg/dia.',
+        { intervalo: 0, repeticoes: 0, facilidade: 2.5, diasAte: 0 }),
+      // Due hoje, intervalo medio
+      baseCard(deckAnato.id, 'Por qual forame passa o nervo trigemeo V3?', 'Forame oval.',
+        { intervalo: 10, repeticoes: 4, facilidade: 2.4, diasAte: 0 }),
+      // Daqui 3 dias
+      baseCard(deckAnato.id, 'Quais ossos compoem o nariz externo?', 'Nasais, frontal (parte), maxilas e cartilagens.',
+        { intervalo: 4, repeticoes: 2, facilidade: 2.3, diasAte: 3 }),
+      // Daqui 6 dias, maduro
+      baseCard(deckAnato.id, 'O que passa pelo canal optico?', 'Nervo optico (II) e arteria oftalmica.',
+        { intervalo: 15, repeticoes: 4, facilidade: 2.5, diasAte: 6 }),
+      // Daqui 1 dia
+      baseCard(deckMicro.id, 'Qual bacteria causa tuberculose?', 'Mycobacterium tuberculosis.',
+        { intervalo: 6, repeticoes: 3, facilidade: 2.5, diasAte: 1 }),
+      // Daqui 5 dias
+      baseCard(deckMicro.id, 'Coloracao de Gram: gram-positivas coram de?', 'Roxo/violeta.',
+        { intervalo: 8, repeticoes: 3, facilidade: 2.5, diasAte: 5 }),
     ];
 
     const agora = Date.now();
