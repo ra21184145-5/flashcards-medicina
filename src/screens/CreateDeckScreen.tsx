@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { useData } from '../context/DataContext';
 import { colors, spacing } from '../theme/colors';
-import { StackNav } from '../navigation/types';
+import { StackNav, StackRoute } from '../navigation/types';
 import { Privacy } from '../types';
 
 const OPCOES_PRIVACIDADE: { valor: Privacy; titulo: string; descricao: string }[] = [
@@ -17,7 +17,12 @@ const OPCOES_PRIVACIDADE: { valor: Privacy; titulo: string; descricao: string }[
 
 export function CreateDeckScreen() {
   const nav = useNavigation<StackNav>();
-  const { criarDeck, grupos } = useData();
+  const route = useRoute<StackRoute<'CreateDeck'>>();
+  const editId = route.params?.editId;
+  const { criarDeck, atualizarDeck, grupos, decks } = useData();
+  const deckParaEditar = editId ? decks.find((d) => d.id === editId) : undefined;
+  const modoEdicao = !!deckParaEditar;
+
   const [nome, setNome] = useState('');
   const [descricao, setDescricao] = useState('');
   const [privacidade, setPrivacidade] = useState<Privacy>('privado');
@@ -25,7 +30,16 @@ export function CreateDeckScreen() {
   const [erro, setErro] = useState('');
   const [loading, setLoading] = useState(false);
 
-  async function handleCriar() {
+  useEffect(() => {
+    if (deckParaEditar) {
+      setNome(deckParaEditar.nome);
+      setDescricao(deckParaEditar.descricao);
+      setPrivacidade(deckParaEditar.privacidade);
+      setGrupoId(deckParaEditar.grupoId);
+    }
+  }, [deckParaEditar]);
+
+  async function handleSalvar() {
     if (!nome.trim()) {
       setErro('Da um nome para o baralho.');
       return;
@@ -37,15 +51,26 @@ export function CreateDeckScreen() {
     setErro('');
     setLoading(true);
     try {
-      const novo = await criarDeck({
-        nome: nome.trim(),
-        descricao: descricao.trim(),
-        privacidade,
-        grupoId,
-      });
-      nav.replace('DeckDetail', { deckId: novo.id });
+      if (modoEdicao && deckParaEditar) {
+        await atualizarDeck({
+          ...deckParaEditar,
+          nome: nome.trim(),
+          descricao: descricao.trim(),
+          privacidade,
+          grupoId,
+        });
+        nav.goBack();
+      } else {
+        const novo = await criarDeck({
+          nome: nome.trim(),
+          descricao: descricao.trim(),
+          privacidade,
+          grupoId,
+        });
+        nav.replace('DeckDetail', { deckId: novo.id });
+      }
     } catch (e: any) {
-      setErro(e?.message ?? 'Falha ao criar.');
+      setErro(e?.message ?? 'Falha ao salvar.');
     } finally {
       setLoading(false);
     }
@@ -58,8 +83,10 @@ export function CreateDeckScreen() {
       </View>
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-          <Text style={styles.titulo}>Novo baralho</Text>
-          <Text style={styles.subtitulo}>Organize seus flashcards por tema ou disciplina.</Text>
+          <Text style={styles.titulo}>{modoEdicao ? 'Editar baralho' : 'Novo baralho'}</Text>
+          <Text style={styles.subtitulo}>
+            {modoEdicao ? 'Atualize as informacoes abaixo.' : 'Organize seus flashcards por tema ou disciplina.'}
+          </Text>
 
           <View style={{ marginTop: spacing.lg }}>
             <Input
@@ -126,7 +153,11 @@ export function CreateDeckScreen() {
             {erro ? <Text style={styles.erro}>{erro}</Text> : null}
 
             <View style={{ marginTop: spacing.lg }}>
-              <Button title="Criar baralho" onPress={handleCriar} loading={loading} />
+              <Button
+                title={modoEdicao ? 'Salvar alteracoes' : 'Criar baralho'}
+                onPress={handleSalvar}
+                loading={loading}
+              />
             </View>
           </View>
         </ScrollView>

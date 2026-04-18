@@ -1,21 +1,26 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { storage } from '../services/storage';
-import { Deck, Flashcard, Grupo, Privacy } from '../types';
+import { Configuracoes, Deck, Flashcard, Grupo, Privacy, Qualidade, ReviewLog } from '../types';
 import { useAuth } from './AuthContext';
 
 interface DataContextValue {
   decks: Deck[];
   cards: Flashcard[];
   grupos: Grupo[];
+  reviewLogs: ReviewLog[];
+  config: Configuracoes;
   criarDeck: (dados: { nome: string; descricao: string; privacidade: Privacy; grupoId?: string }) => Promise<Deck>;
   atualizarDeck: (deck: Deck) => Promise<void>;
   removerDeck: (deckId: string) => Promise<void>;
   criarCard: (deckId: string, frente: string, verso: string) => Promise<Flashcard>;
+  criarCardsEmLote: (deckId: string, cardsBase: { frente: string; verso: string }[]) => Promise<Flashcard[]>;
   atualizarCard: (card: Flashcard) => Promise<void>;
   removerCard: (cardId: string) => Promise<void>;
   criarGrupo: (dados: { nome: string; descricao: string; requerAprovacao: boolean }) => Promise<Grupo>;
   entrarNoGrupo: (grupoId: string) => Promise<void>;
   cardsDoDeck: (deckId: string) => Flashcard[];
+  registrarRevisao: (card: Flashcard, qualidade: Qualidade) => Promise<void>;
+  atualizarConfig: (parcial: Partial<Configuracoes>) => Promise<void>;
   semearDadosExemplo: () => Promise<void>;
 }
 
@@ -25,22 +30,33 @@ function gerarId(prefixo: string) {
   return `${prefixo}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`;
 }
 
+const CONFIG_INICIAL: Configuracoes = {
+  geminiApiKey: '',
+  geminiModelo: 'gemini-2.5-pro',
+};
+
 export function DataProvider({ children }: { children: React.ReactNode }) {
   const { user } = useAuth();
   const [decks, setDecks] = useState<Deck[]>([]);
   const [cards, setCards] = useState<Flashcard[]>([]);
   const [grupos, setGrupos] = useState<Grupo[]>([]);
+  const [reviewLogs, setReviewLogs] = useState<ReviewLog[]>([]);
+  const [config, setConfig] = useState<Configuracoes>(CONFIG_INICIAL);
 
   useEffect(() => {
     (async () => {
-      const [d, c, g] = await Promise.all([
+      const [d, c, g, logs, cfg] = await Promise.all([
         storage.getDecks(),
         storage.getCards(),
         storage.getGrupos(),
+        storage.getReviewLogs(),
+        storage.getConfig(),
       ]);
       setDecks(d);
       setCards(c);
       setGrupos(g);
+      setReviewLogs(logs);
+      setConfig(cfg);
     })();
   }, []);
 
@@ -57,6 +73,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const persistirGrupos = useCallback(async (novos: Grupo[]) => {
     setGrupos(novos);
     await storage.setGrupos(novos);
+  }, []);
+
+  const persistirLogs = useCallback(async (novos: ReviewLog[]) => {
+    setReviewLogs(novos);
+    await storage.setReviewLogs(novos);
   }, []);
 
   async function criarDeck({ nome, descricao, privacidade, grupoId }: { nome: string; descricao: string; privacidade: Privacy; grupoId?: string }) {
@@ -83,10 +104,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   async function removerDeck(deckId: string) {
     await persistirDecks(decks.filter((d) => d.id !== deckId));
     await persistirCards(cards.filter((c) => c.deckId !== deckId));
+    await persistirLogs(reviewLogs.filter((l) => l.deckId !== deckId));
   }
 
-  async function criarCard(deckId: string, frente: string, verso: string) {
-    const novo: Flashcard = {
+  function novoCardBase(deckId: string, frente: string, verso: string): Flashcard {
+    return {
       id: gerarId('card'),
       deckId,
       frente,
@@ -97,6 +119,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       facilidade: 2.5,
       proximaRevisao: Date.now(),
     };
+  }
+
+  async function criarCard(deckId: string, frente: string, verso: string) {
+    const novo = novoCardBase(deckId, frente, verso);
     const novosCards = [novo, ...cards];
     await persistirCards(novosCards);
     const deck = decks.find((d) => d.id === deckId);
@@ -104,6 +130,18 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       await atualizarDeck({ ...deck, totalCards: deck.totalCards + 1 });
     }
     return novo;
+  }
+
+  async function criarCardsEmLote(deckId: string, cardsBase: { frente: string; verso: string }[]) {
+    if (cardsBase.length === 0) return [];
+    const novos = cardsBase.map((b) => novoCardBase(deckId, b.frente, b.verso));
+    const todos = [...novos, ...cards];
+    await persistirCards(todos);
+    const deck = decks.find((d) => d.id === deckId);
+    if (deck) {
+      await atualizarDeck({ ...deck, totalCards: deck.totalCards + novos.length });
+    }
+    return novos;
   }
 
   async function atualizarCard(card: Flashcard) {
@@ -114,6 +152,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   async function removerCard(cardId: string) {
     const cardRemovido = cards.find((c) => c.id === cardId);
     await persistirCards(cards.filter((c) => c.id !== cardId));
+    await persistirLogs(reviewLogs.filter((l) => l.cardId !== cardId));
     if (cardRemovido) {
       const deck = decks.find((d) => d.id === cardRemovido.deckId);
       if (deck) {
@@ -149,6 +188,25 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   function cardsDoDeck(deckId: string) {
     return cards.filter((c) => c.deckId === deckId);
+  }
+
+  async function registrarRevisao(card: Flashcard, qualidade: Qualidade) {
+    const log: ReviewLog = {
+      id: gerarId('log'),
+      cardId: card.id,
+      deckId: card.deckId,
+      qualidade,
+      timestamp: Date.now(),
+    };
+    // Limitamos o historico a 5000 entradas para nao inflar o storage.
+    const novos = [log, ...reviewLogs].slice(0, 5000);
+    await persistirLogs(novos);
+  }
+
+  async function atualizarConfig(parcial: Partial<Configuracoes>) {
+    const novo = { ...config, ...parcial };
+    setConfig(novo);
+    await storage.setConfig(novo);
   }
 
   async function semearDadosExemplo() {
@@ -207,6 +265,27 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       baseCard(deckMicro.id, 'Coloracao de Gram: gram-positivas coram de?', 'Roxo/violeta.', 0),
     ];
 
+    // Gera alguns logs simulados dos ultimos 7 dias para popular a tela de estatisticas.
+    const agora = Date.now();
+    const UM_DIA = 24 * 60 * 60 * 1000;
+    const logsSimulados: ReviewLog[] = [];
+    const qualidadesExemplo: Qualidade[] = [5, 4, 3, 4, 5, 4, 1, 4, 5, 3, 4, 5];
+    let contador = 0;
+    for (let dia = 6; dia >= 0; dia--) {
+      const revisoesNoDia = [3, 5, 4, 6, 2, 7, 4][dia];
+      for (let i = 0; i < revisoesNoDia; i++) {
+        const card = novosCards[contador % novosCards.length];
+        logsSimulados.push({
+          id: gerarId('log'),
+          cardId: card.id,
+          deckId: card.deckId,
+          qualidade: qualidadesExemplo[contador % qualidadesExemplo.length],
+          timestamp: agora - dia * UM_DIA - i * 3600_000,
+        });
+        contador += 1;
+      }
+    }
+
     const grupoExemplo: Grupo = {
       id: gerarId('grp'),
       nome: 'Medicina UFSM - Turma 2024',
@@ -220,6 +299,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     await persistirDecks([deckCardio, deckAnato, deckMicro]);
     await persistirCards(novosCards);
     await persistirGrupos([grupoExemplo]);
+    await persistirLogs(logsSimulados);
   }
 
   return (
@@ -228,15 +308,20 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         decks,
         cards,
         grupos,
+        reviewLogs,
+        config,
         criarDeck,
         atualizarDeck,
         removerDeck,
         criarCard,
+        criarCardsEmLote,
         atualizarCard,
         removerCard,
         criarGrupo,
         entrarNoGrupo,
         cardsDoDeck,
+        registrarRevisao,
+        atualizarConfig,
         semearDadosExemplo,
       }}
     >

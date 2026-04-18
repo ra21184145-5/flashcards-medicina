@@ -21,7 +21,7 @@ export function StudyScreen() {
   const nav = useNavigation<StackNav>();
   const route = useRoute<StackRoute<'Study'>>();
   const { deckId } = route.params;
-  const { decks, cardsDoDeck, atualizarCard } = useData();
+  const { decks, cardsDoDeck, atualizarCard, registrarRevisao } = useData();
 
   const deck = decks.find((d) => d.id === deckId);
   const cardsDeck = cardsDoDeck(deckId);
@@ -39,6 +39,7 @@ export function StudyScreen() {
     if (!atual) return;
     const atualizado = calcularProximaRevisao(atual, qualidade);
     await atualizarCard(atualizado);
+    await registrarRevisao(atualizado, qualidade);
     if (indice + 1 >= fila.length) {
       // acabou - volta pro deck
       nav.goBack();

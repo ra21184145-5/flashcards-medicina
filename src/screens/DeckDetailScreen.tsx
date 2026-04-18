@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { Alert, FlatList, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../components/Button';
@@ -11,11 +11,23 @@ import { cardsParaRevisar } from '../services/spacedRepetition';
 import { colors, spacing } from '../theme/colors';
 import { StackNav, StackRoute } from '../navigation/types';
 
+function confirmar(titulo: string, mensagem: string, onOk: () => void) {
+  if (Platform.OS === 'web') {
+    // eslint-disable-next-line no-alert
+    if (typeof window !== 'undefined' && window.confirm(`${titulo}\n\n${mensagem}`)) onOk();
+    return;
+  }
+  Alert.alert(titulo, mensagem, [
+    { text: 'Cancelar', style: 'cancel' },
+    { text: 'Excluir', style: 'destructive', onPress: onOk },
+  ]);
+}
+
 export function DeckDetailScreen() {
   const nav = useNavigation<StackNav>();
   const route = useRoute<StackRoute<'DeckDetail'>>();
   const { deckId } = route.params;
-  const { decks, cardsDoDeck, removerDeck } = useData();
+  const { decks, cardsDoDeck, removerDeck, removerCard } = useData();
 
   const deck = decks.find((d) => d.id === deckId);
   const cards = useMemo(() => cardsDoDeck(deckId), [cardsDoDeck, deckId]);
@@ -27,6 +39,23 @@ export function DeckDetailScreen() {
         <EmptyState titulo="Baralho nao encontrado" icone="❓" />
       </SafeAreaView>
     );
+  }
+
+  function excluirDeck() {
+    confirmar(
+      'Excluir baralho',
+      `Tem certeza? "${deck!.nome}" e todos os ${cards.length} cartoes serao removidos.`,
+      async () => {
+        await removerDeck(deckId);
+        nav.goBack();
+      }
+    );
+  }
+
+  function excluirCard(id: string, pergunta: string) {
+    confirmar('Excluir cartao', `"${pergunta.slice(0, 60)}${pergunta.length > 60 ? '...' : ''}" sera removido.`, async () => {
+      await removerCard(id);
+    });
   }
 
   return (
@@ -71,11 +100,37 @@ export function DeckDetailScreen() {
                 disabled={cards.length === 0}
               />
               <View style={{ height: spacing.sm }} />
-              <Button
-                title="+ Adicionar card"
-                variant="outline"
-                onPress={() => nav.navigate('CreateFlashcard', { deckId })}
-              />
+              <View style={styles.linhaBotoes}>
+                <Button
+                  title="+ Adicionar card"
+                  variant="outline"
+                  onPress={() => nav.navigate('CreateFlashcard', { deckId })}
+                  style={styles.botaoFlex}
+                />
+                <View style={{ width: spacing.sm }} />
+                <Button
+                  title="✨ Gerar com IA"
+                  variant="outline"
+                  onPress={() => nav.navigate('AIGenerate', { deckId })}
+                  style={styles.botaoFlex}
+                />
+              </View>
+              <View style={{ height: spacing.sm }} />
+              <View style={styles.linhaBotoes}>
+                <Button
+                  title="Editar baralho"
+                  variant="ghost"
+                  onPress={() => nav.navigate('CreateDeck', { editId: deckId })}
+                  style={styles.botaoFlex}
+                />
+                <View style={{ width: spacing.sm }} />
+                <Button
+                  title="Excluir"
+                  variant="danger"
+                  onPress={excluirDeck}
+                  style={styles.botaoFlex}
+                />
+              </View>
             </View>
 
             <Text style={styles.secao}>Flashcards</Text>
@@ -99,6 +154,22 @@ export function DeckDetailScreen() {
               <Text style={styles.cardMeta}>
                 Repeticoes: {item.repeticoes} • Facilidade: {item.facilidade.toFixed(2)}
               </Text>
+              <View style={styles.cardAcoes}>
+                <Pressable
+                  onPress={() => nav.navigate('CreateFlashcard', { deckId, editId: item.id })}
+                  hitSlop={8}
+                  style={({ pressed }) => [styles.acaoBtn, pressed && styles.acaoBtnPressed]}
+                >
+                  <Text style={styles.acaoTextoEditar}>Editar</Text>
+                </Pressable>
+                <Pressable
+                  onPress={() => excluirCard(item.id, item.frente)}
+                  hitSlop={8}
+                  style={({ pressed }) => [styles.acaoBtn, pressed && styles.acaoBtnPressed]}
+                >
+                  <Text style={styles.acaoTextoExcluir}>Excluir</Text>
+                </Pressable>
+              </View>
             </View>
           </Card>
         )}
@@ -133,11 +204,24 @@ const styles = StyleSheet.create({
   statNumero: { fontSize: 22, fontWeight: '800', color: colors.primary },
   statLabel: { fontSize: 11, color: colors.textMuted, marginTop: 2, textTransform: 'uppercase', letterSpacing: 0.5 },
   acoes: { marginTop: spacing.lg },
+  linhaBotoes: { flexDirection: 'row' },
+  botaoFlex: { flex: 1 },
   secao: { fontSize: 15, fontWeight: '700', color: colors.text, marginTop: spacing.xl, marginBottom: spacing.sm },
   cardItem: { marginBottom: spacing.sm },
   frente: { fontSize: 15, color: colors.text, fontWeight: '600' },
   linha: { height: 1, backgroundColor: colors.border, marginVertical: spacing.sm },
   verso: { fontSize: 14, color: colors.textMuted, lineHeight: 20 },
-  cardRodape: { marginTop: spacing.sm },
-  cardMeta: { fontSize: 11, color: colors.textSoft },
+  cardRodape: {
+    marginTop: spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
+  cardMeta: { fontSize: 11, color: colors.textSoft, flex: 1 },
+  cardAcoes: { flexDirection: 'row', gap: spacing.sm },
+  acaoBtn: { paddingVertical: 4, paddingHorizontal: 8, borderRadius: 6 },
+  acaoBtnPressed: { opacity: 0.6 },
+  acaoTextoEditar: { fontSize: 12, color: colors.primary, fontWeight: '600' },
+  acaoTextoExcluir: { fontSize: 12, color: colors.danger, fontWeight: '600' },
 });
