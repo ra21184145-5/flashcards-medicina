@@ -1,0 +1,43 @@
+export type Privacy = 'privado' | 'publico' | 'grupo';
+
+export interface User {
+  id: string;
+  email: string;
+  nome: string;
+}
+
+export interface Flashcard {
+  id: string;
+  deckId: string;
+  frente: string;
+  verso: string;
+  criadoEm: number;
+  // Campos do algoritmo de revisao espacada (SM-2 simplificado)
+  intervalo: number; // dias ate a proxima revisao
+  repeticoes: number;
+  facilidade: number; // easiness factor
+  proximaRevisao: number; // timestamp
+}
+
+export interface Deck {
+  id: string;
+  nome: string;
+  descricao: string;
+  donoId: string;
+  privacidade: Privacy;
+  grupoId?: string;
+  criadoEm: number;
+  totalCards: number;
+}
+
+export interface Grupo {
+  id: string;
+  nome: string;
+  descricao: string;
+  donoId: string;
+  requerAprovacao: boolean;
+  membros: string[];
+  criadoEm: number;
+}
+
+export type Qualidade = 0 | 1 | 2 | 3 | 4 | 5;

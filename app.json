@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "Flashcards Medicina",
+    "slug": "flashcards-medicina",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "platforms": ["android", "web"],
+    "android": {
+      "package": "com.brunoosanes.flashcardsmedicina",
+      "versionCode": 1
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}
