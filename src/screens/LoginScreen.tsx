@@ -9,7 +9,6 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { LinearGradient } from 'expo-linear-gradient';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 import { Button } from '../components/Button';
@@ -17,7 +16,7 @@ import { Input } from '../components/Input';
 import { BrandMark } from '../components/BrandMark';
 import { GoogleIcon } from '../components/GoogleIcon';
 import { useAuth } from '../context/AuthContext';
-import { colors, layout, radii, spacing } from '../theme/colors';
+import { colors, radii, spacing } from '../theme/colors';
 import { fonts } from '../theme/typography';
 import { StackNav } from '../navigation/types';
 import { WEB_CLIENT_ID } from '../config/googleAuth';
@@ -28,7 +27,7 @@ export function LoginScreen() {
   const nav = useNavigation<StackNav>();
   const { entrar, entrarComGoogle } = useAuth();
   const { width } = useWindowDimensions();
-  const wide = width >= 900;
+  const wide = width >= 960;
 
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
@@ -86,12 +85,139 @@ export function LoginScreen() {
     }
   }
 
+  const hero = (
+    <View style={[styles.hero, wide && styles.heroWide]}>
+      <View style={styles.eyebrow}>
+        <View style={styles.eyebrowDot} />
+        <Text style={styles.eyebrowText}>Revisão espaçada · Medicina</Text>
+      </View>
+
+      <View style={styles.brandBlock}>
+        <BrandMark size={wide ? 64 : 56} />
+      </View>
+
+      <Text style={[styles.titulo, wide && styles.tituloWide]}>Flashcards{'\n'}Medicina</Text>
+      <Text style={styles.subtitulo}>
+        Uma biblioteca pessoal de cartões de estudo, pensada para a rotina de
+        quem aprende e pratica medicina.
+      </Text>
+
+      {wide ? (
+        <View style={styles.heroFeatures}>
+          <View style={styles.feature}>
+            <Text style={styles.featureNum}>01</Text>
+            <View style={styles.featureBody}>
+              <Text style={styles.featureTitle}>Crie e organize</Text>
+              <Text style={styles.featureText}>
+                Baralhos temáticos — fisiologia, clínica, farmacologia — com
+                privacidade ajustável.
+              </Text>
+            </View>
+          </View>
+          <View style={styles.feature}>
+            <Text style={styles.featureNum}>02</Text>
+            <View style={styles.featureBody}>
+              <Text style={styles.featureTitle}>Revise no tempo certo</Text>
+              <Text style={styles.featureText}>
+                Algoritmo SM-2 reagenda cada cartão conforme sua resposta, para
+                consolidar a memória de longo prazo.
+              </Text>
+            </View>
+          </View>
+          <View style={styles.feature}>
+            <Text style={styles.featureNum}>03</Text>
+            <View style={styles.featureBody}>
+              <Text style={styles.featureTitle}>Gere com IA</Text>
+              <Text style={styles.featureText}>
+                A partir de um tema ou trecho de texto, rascunhos de cartões
+                para você revisar e adotar.
+              </Text>
+            </View>
+          </View>
+        </View>
+      ) : null}
+
+      <Text style={styles.epigrafe}>
+        <Text style={styles.epigrafeAspas}>“</Text>
+        A prática de recuperação, mais do que reler, é o que consolida o
+        aprendizado duradouro.
+        <Text style={styles.epigrafeAspas}>”</Text>
+        {'\n'}
+        <Text style={styles.epigrafeFonte}>— Karpicke, 2012</Text>
+      </Text>
+    </View>
+  );
+
+  const form = (
+    <View style={[styles.formColumn, wide && styles.formColumnWide]}>
+      <View style={styles.card}>
+        <Text style={styles.cardTitulo}>Entrar na biblioteca</Text>
+        <Text style={styles.cardSub}>
+          Use seu e-mail e senha, ou continue com uma conta Google.
+        </Text>
+
+        <Input
+          label="E-mail"
+          placeholder="voce@exemplo.com"
+          autoCapitalize="none"
+          keyboardType="email-address"
+          value={email}
+          onChangeText={setEmail}
+        />
+        <Input
+          label="Senha"
+          placeholder="Sua senha"
+          secureTextEntry
+          value={senha}
+          onChangeText={setSenha}
+        />
+
+        {erro ? <Text style={styles.erro}>{erro}</Text> : null}
+
+        <Button title="Entrar" onPress={handleEntrar} loading={loading} />
+
+        {googleHabilitado ? (
+          <>
+            <View style={styles.divisor}>
+              <View style={styles.divisorLinha} />
+              <Text style={styles.divisorTexto}>ou</Text>
+              <View style={styles.divisorLinha} />
+            </View>
+            <Button
+              title="Entrar com Google"
+              onPress={handleGoogle}
+              loading={loadingGoogle}
+              variant="outline"
+              icon={<GoogleIcon size={18} />}
+            />
+          </>
+        ) : null}
+
+        <View style={styles.registroLinha}>
+          <Text style={styles.registroTexto}>Ainda não tem conta?</Text>
+          <Text
+            style={styles.registroLink}
+            onPress={() => nav.navigate('Register')}
+          >
+            Criar agora
+          </Text>
+        </View>
+      </View>
+
+      <Text style={styles.rodape}>
+        Ao entrar você concorda com os termos de uso do aplicativo.
+      </Text>
+    </View>
+  );
+
   return (
     <View style={styles.root}>
-      {/* Camada de fundo com manchas suaves de cor para dar profundidade. */}
+      {/* Marca dagua editorial: moldura fina + linha vertical sutil a direita */}
       <View pointerEvents="none" style={styles.bgLayer}>
-        <View style={[styles.blob, styles.blobTop]} />
-        <View style={[styles.blob, styles.blobBottom]} />
+        <View style={styles.grain} />
+        <View style={styles.blobAmber} />
+        <View style={styles.blobBlue} />
+        <View style={styles.ruleRight} />
       </View>
 
       <KeyboardAvoidingView
@@ -103,83 +229,18 @@ export function LoginScreen() {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={[styles.container, wide && styles.containerWide]}>
-            <View style={styles.eyebrow}>
-              <View style={styles.eyebrowDot} />
-              <Text style={styles.eyebrowText}>Revisão espaçada · Medicina</Text>
-            </View>
-
-            <View style={styles.brandBlock}>
-              <BrandMark size={72} />
-            </View>
-
-            <Text style={styles.titulo}>Flashcards Medicina</Text>
-            <Text style={styles.subtitulo}>
-              Uma biblioteca pessoal de cartões de estudo, pensada para a rotina de quem
-              aprende e pratica medicina.
-            </Text>
-
-            <View style={styles.card}>
-              <Input
-                label="E-mail"
-                placeholder="voce@exemplo.com"
-                autoCapitalize="none"
-                keyboardType="email-address"
-                value={email}
-                onChangeText={setEmail}
-              />
-              <Input
-                label="Senha"
-                placeholder="Sua senha"
-                secureTextEntry
-                value={senha}
-                onChangeText={setSenha}
-              />
-
-              {erro ? <Text style={styles.erro}>{erro}</Text> : null}
-
-              <Button title="Entrar" onPress={handleEntrar} loading={loading} />
-
-              {googleHabilitado ? (
-                <>
-                  <View style={styles.divisor}>
-                    <View style={styles.divisorLinha} />
-                    <Text style={styles.divisorTexto}>ou</Text>
-                    <View style={styles.divisorLinha} />
-                  </View>
-                  <Button
-                    title="Entrar com Google"
-                    onPress={handleGoogle}
-                    loading={loadingGoogle}
-                    variant="outline"
-                    icon={<GoogleIcon size={18} />}
-                  />
-                </>
-              ) : null}
-
-              <View style={styles.registroLinha}>
-                <Text style={styles.registroTexto}>Ainda não tem conta?</Text>
-                <Text
-                  style={styles.registroLink}
-                  onPress={() => nav.navigate('Register')}
-                >
-                  Criar agora
-                </Text>
+          <View style={[styles.shell, wide && styles.shellWide]}>
+            {wide ? (
+              <View style={styles.twoCol}>
+                {hero}
+                {form}
               </View>
-            </View>
-
-            <Text style={styles.epigrafe}>
-              <Text style={styles.epigrafeAspas}>“</Text>
-              A prática de recuperação, mais do que reler, é o que consolida o aprendizado
-              duradouro.
-              <Text style={styles.epigrafeAspas}>”</Text>
-              {'\n'}
-              <Text style={styles.epigrafeFonte}>— Karpicke, 2012</Text>
-            </Text>
-
-            <Text style={styles.rodape}>
-              Ao entrar você concorda com os termos de uso do aplicativo.
-            </Text>
+            ) : (
+              <>
+                {hero}
+                {form}
+              </>
+            )}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -193,42 +254,71 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     alignItems: 'center',
-    paddingVertical: spacing.xxl,
+    paddingVertical: spacing.xl,
     paddingHorizontal: spacing.lg,
   },
-  container: {
+  shell: {
     width: '100%',
-    maxWidth: layout.maxContent,
+    maxWidth: 480,
   },
-  containerWide: {
+  shellWide: {
+    maxWidth: 1120,
     paddingVertical: spacing.xl,
   },
+  twoCol: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 72,
+  },
 
-  // Camada decorativa de fundo
+  // Fundo editorial contido
   bgLayer: {
     ...StyleSheet.absoluteFillObject,
     overflow: 'hidden',
   },
-  blob: {
+  grain: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: colors.surfaceMuted,
+    opacity: 0.35,
+  },
+  blobAmber: {
     position: 'absolute',
-    width: 520,
-    height: 520,
-    borderRadius: 260,
-    opacity: 0.16,
+    top: -120,
+    left: -80,
+    width: 280,
+    height: 280,
+    borderRadius: 140,
+    backgroundColor: colors.amberSoft,
+    opacity: 0.55,
   },
-  blobTop: {
-    top: -260,
-    right: -180,
-    backgroundColor: colors.primary,
+  blobBlue: {
+    position: 'absolute',
+    bottom: -160,
+    right: -120,
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    backgroundColor: colors.primarySoft,
+    opacity: 0.65,
   },
-  blobBottom: {
-    bottom: -240,
-    left: -160,
-    backgroundColor: colors.amber,
-    opacity: 0.12,
+  ruleRight: {
+    position: 'absolute',
+    top: 48,
+    bottom: 48,
+    right: 32,
+    width: 1,
+    backgroundColor: colors.border,
+    opacity: 0.6,
   },
 
-  // Eyebrow (small caps label)
+  hero: {
+    width: '100%',
+  },
+  heroWide: {
+    flex: 1.05,
+    maxWidth: 520,
+  },
+
   eyebrow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -257,19 +347,70 @@ const styles = StyleSheet.create({
 
   titulo: {
     fontFamily: fonts.display,
-    fontSize: 38,
-    lineHeight: 42,
+    fontSize: 40,
+    lineHeight: 44,
     color: colors.text,
-    letterSpacing: -0.8,
-    marginBottom: spacing.sm,
+    letterSpacing: -1,
+    marginBottom: spacing.md,
+  },
+  tituloWide: {
+    fontSize: 64,
+    lineHeight: 66,
+    letterSpacing: -2,
   },
   subtitulo: {
     fontFamily: fonts.body,
     fontSize: 15,
-    lineHeight: 22,
+    lineHeight: 23,
     color: colors.textMuted,
     marginBottom: spacing.xl,
-    maxWidth: 420,
+    maxWidth: 460,
+  },
+
+  heroFeatures: {
+    gap: spacing.md,
+    marginBottom: spacing.xl,
+  },
+  feature: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    alignItems: 'flex-start',
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    paddingTop: spacing.md,
+  },
+  featureNum: {
+    fontFamily: fonts.displayItalic,
+    fontSize: 16,
+    color: colors.amber,
+    minWidth: 24,
+    lineHeight: 22,
+  },
+  featureBody: {
+    flex: 1,
+  },
+  featureTitle: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 14,
+    color: colors.text,
+    marginBottom: 2,
+    letterSpacing: 0.1,
+  },
+  featureText: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.textMuted,
+    lineHeight: 19,
+  },
+
+  formColumn: {
+    width: '100%',
+    marginTop: spacing.lg,
+  },
+  formColumnWide: {
+    flex: 0.95,
+    marginTop: 0,
+    maxWidth: 440,
   },
 
   card: {
@@ -279,10 +420,24 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     shadowColor: colors.shadow,
-    shadowOpacity: 0.06,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: 12 },
-    elevation: 3,
+    shadowOpacity: 0.08,
+    shadowRadius: 32,
+    shadowOffset: { width: 0, height: 16 },
+    elevation: 4,
+  },
+  cardTitulo: {
+    fontFamily: fonts.display,
+    fontSize: 20,
+    color: colors.text,
+    letterSpacing: -0.3,
+    marginBottom: 4,
+  },
+  cardSub: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.textMuted,
+    marginBottom: spacing.md,
+    lineHeight: 19,
   },
   erro: {
     fontFamily: fonts.body,
@@ -329,10 +484,12 @@ const styles = StyleSheet.create({
     fontFamily: fonts.displayItalic,
     fontSize: 14,
     lineHeight: 22,
-    textAlign: 'center',
     color: colors.textMuted,
-    marginTop: spacing.xl,
-    paddingHorizontal: spacing.md,
+    marginTop: spacing.lg,
+    paddingRight: spacing.md,
+    borderLeftWidth: 2,
+    borderLeftColor: colors.amber,
+    paddingLeft: spacing.md,
   },
   epigrafeAspas: {
     fontFamily: fonts.display,
@@ -352,6 +509,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: colors.textSoft,
     textAlign: 'center',
-    marginTop: spacing.lg,
+    marginTop: spacing.md,
   },
 });

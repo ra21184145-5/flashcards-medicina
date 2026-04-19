@@ -6,7 +6,8 @@ import { Button } from '../components/Button';
 import { Card } from '../components/Card';
 import { useAuth } from '../context/AuthContext';
 import { useData } from '../context/DataContext';
-import { colors, spacing } from '../theme/colors';
+import { colors, radii, spacing } from '../theme/colors';
+import { fonts } from '../theme/typography';
 import { StackNav } from '../navigation/types';
 
 export function ProfileScreen() {
@@ -20,7 +21,8 @@ export function ProfileScreen() {
   return (
     <ScreenContainer>
       <View style={styles.header}>
-        <Text style={styles.titulo}>Perfil</Text>
+        <Text style={styles.eyebrow}>PERFIL</Text>
+        <Text style={styles.titulo}>Sua conta</Text>
       </View>
       <View style={styles.conteudo}>
         <Card>
@@ -30,33 +32,46 @@ export function ProfileScreen() {
                 {(user?.nome ?? '?').slice(0, 1).toUpperCase()}
               </Text>
             </View>
-            <View>
+            <View style={{ flex: 1 }}>
               <Text style={styles.nome}>{user?.nome}</Text>
               <Text style={styles.email}>{user?.email}</Text>
             </View>
           </View>
         </Card>
 
-        <View style={styles.stats}>
-          <Card style={styles.statBox}>
+        <View style={styles.painelStats}>
+          <View style={styles.statCol}>
             <Text style={styles.statNumero}>{meusDecks}</Text>
             <Text style={styles.statLabel}>Baralhos</Text>
-          </Card>
-          <Card style={styles.statBox}>
-            <Text style={styles.statNumero}>{cards.length}</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statCol}>
+            <Text style={[styles.statNumero, { color: colors.accent }]}>{cards.length}</Text>
             <Text style={styles.statLabel}>Flashcards</Text>
-          </Card>
-          <Card style={styles.statBox}>
-            <Text style={styles.statNumero}>{meusGrupos}</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statCol}>
+            <Text style={[styles.statNumero, { color: colors.amber }]}>{meusGrupos}</Text>
             <Text style={styles.statLabel}>Grupos</Text>
-          </Card>
+          </View>
         </View>
 
-        <Text style={styles.secao}>Mais</Text>
+        <View style={styles.secaoWrap}>
+          <Text style={styles.secao}>Mais</Text>
+          <View style={styles.secaoRegua} />
+        </View>
         <Card style={styles.menu}>
-          <MenuItem icone="📊" titulo="Estatisticas" descricao="Streak, acertos e historico" onPress={() => nav.navigate('Stats')} />
+          <MenuItem
+            titulo="Estatísticas"
+            descricao="Streak, acertos e histórico"
+            onPress={() => nav.navigate('Stats')}
+          />
           <View style={styles.divisor} />
-          <MenuItem icone="⚙️" titulo="Configuracoes" descricao="Chave da API Gemini e modelo" onPress={() => nav.navigate('Settings')} />
+          <MenuItem
+            titulo="Configurações"
+            descricao="Chave da API Gemini e modelo"
+            onPress={() => nav.navigate('Settings')}
+          />
         </Card>
 
         <View style={{ marginTop: spacing.xl }}>
@@ -67,10 +82,20 @@ export function ProfileScreen() {
   );
 }
 
-function MenuItem({ icone, titulo, descricao, onPress }: { icone: string; titulo: string; descricao: string; onPress: () => void }) {
+function MenuItem({
+  titulo,
+  descricao,
+  onPress,
+}: {
+  titulo: string;
+  descricao: string;
+  onPress: () => void;
+}) {
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}>
-      <Text style={styles.itemIcone}>{icone}</Text>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.item, pressed && styles.itemPressed]}
+    >
       <View style={{ flex: 1 }}>
         <Text style={styles.itemTitulo}>{titulo}</Text>
         <Text style={styles.itemDescricao}>{descricao}</Text>
@@ -84,32 +109,92 @@ const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.background },
   header: {
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
+    paddingTop: spacing.lg,
     paddingBottom: spacing.sm,
   },
-  titulo: { fontSize: 24, fontWeight: '800', color: colors.text },
-  conteudo: { padding: spacing.lg },
+  eyebrow: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 10,
+    letterSpacing: 1.8,
+    color: colors.textSoft,
+    textTransform: 'uppercase',
+    marginBottom: 6,
+  },
+  titulo: {
+    fontFamily: fonts.display,
+    fontSize: 28,
+    color: colors.text,
+    letterSpacing: -0.5,
+    lineHeight: 32,
+  },
+  conteudo: { padding: spacing.lg, paddingTop: spacing.sm },
   avatarLinha: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: colors.primary,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: colors.primaryDeep,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  avatarTexto: { color: '#fff', fontSize: 22, fontWeight: '700' },
-  nome: { fontSize: 17, fontWeight: '700', color: colors.text },
-  email: { fontSize: 13, color: colors.textMuted, marginTop: 2 },
-  stats: {
-    marginTop: spacing.lg,
-    flexDirection: 'row',
-    gap: spacing.sm,
+  avatarTexto: {
+    fontFamily: fonts.display,
+    color: '#fff',
+    fontSize: 24,
+    letterSpacing: -0.2,
   },
-  statBox: { flex: 1, alignItems: 'center' },
-  statNumero: { fontSize: 22, fontWeight: '800', color: colors.primary },
-  statLabel: { fontSize: 11, color: colors.textMuted, marginTop: 2, textTransform: 'uppercase', letterSpacing: 0.5 },
-  secao: { fontSize: 13, fontWeight: '700', color: colors.text, marginTop: spacing.lg, marginBottom: spacing.sm, textTransform: 'uppercase', letterSpacing: 0.5 },
+  nome: {
+    fontFamily: fonts.display,
+    fontSize: 20,
+    color: colors.text,
+    letterSpacing: -0.3,
+  },
+  email: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.textMuted,
+    marginTop: 2,
+  },
+  painelStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.lg,
+    paddingVertical: spacing.md,
+    marginTop: spacing.lg,
+  },
+  statCol: { flex: 1, alignItems: 'center' },
+  statDivider: { width: 1, height: 28, backgroundColor: colors.border },
+  statNumero: {
+    fontFamily: fonts.display,
+    fontSize: 26,
+    color: colors.primaryDeep,
+    letterSpacing: -0.5,
+    lineHeight: 30,
+  },
+  statLabel: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 10,
+    color: colors.textMuted,
+    marginTop: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+  },
+  secaoWrap: { marginTop: spacing.xl, marginBottom: spacing.sm },
+  secao: {
+    fontFamily: fonts.display,
+    fontSize: 18,
+    color: colors.text,
+    letterSpacing: -0.2,
+    marginBottom: 6,
+  },
+  secaoRegua: {
+    width: 32,
+    height: 2,
+    backgroundColor: colors.amber,
+  },
   menu: { padding: 0 },
   item: {
     flexDirection: 'row',
@@ -117,10 +202,23 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     gap: spacing.md,
   },
-  itemPressed: { backgroundColor: colors.background },
-  itemIcone: { fontSize: 22 },
-  itemTitulo: { fontSize: 15, fontWeight: '600', color: colors.text },
-  itemDescricao: { fontSize: 12, color: colors.textMuted, marginTop: 2 },
-  seta: { fontSize: 22, color: colors.textMuted },
+  itemPressed: { backgroundColor: colors.surfaceMuted },
+  itemTitulo: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 15,
+    color: colors.text,
+    letterSpacing: 0.1,
+  },
+  itemDescricao: {
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textMuted,
+    marginTop: 2,
+  },
+  seta: {
+    fontFamily: fonts.display,
+    fontSize: 22,
+    color: colors.textSoft,
+  },
   divisor: { height: 1, backgroundColor: colors.border, marginHorizontal: spacing.md },
 });

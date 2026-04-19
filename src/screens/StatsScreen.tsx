@@ -4,7 +4,8 @@ import { ScreenContainer } from '../components/ScreenContainer';
 import { useNavigation } from '@react-navigation/native';
 import { Card } from '../components/Card';
 import { useData } from '../context/DataContext';
-import { colors, spacing } from '../theme/colors';
+import { colors, radii, spacing } from '../theme/colors';
+import { fonts } from '../theme/typography';
 import { StackNav } from '../navigation/types';
 import { ReviewLog } from '../types';
 
@@ -77,30 +78,40 @@ export function StatsScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll}>
-        <Text style={styles.titulo}>Suas estatisticas</Text>
-        <Text style={styles.subtitulo}>Acompanhe seu progresso e mantenha a consistencia.</Text>
+        <Text style={styles.eyebrow}>ESTATÍSTICAS</Text>
+        <Text style={styles.titulo}>Seu progresso</Text>
+        <Text style={styles.subtitulo}>
+          Acompanhe consistência, acertos e a maturidade dos seus cartões.
+        </Text>
 
-        <View style={styles.linhaCards}>
-          <Card style={styles.statBox}>
-            <Text style={styles.statIcon}>🔥</Text>
-            <Text style={styles.statNumero}>{resumo.streak}</Text>
-            <Text style={styles.statLabel}>Dias seguidos</Text>
-          </Card>
-          <Card style={styles.statBox}>
-            <Text style={styles.statIcon}>🎯</Text>
-            <Text style={styles.statNumero}>{resumo.taxaAcerto}%</Text>
-            <Text style={styles.statLabel}>Acerto</Text>
-          </Card>
-          <Card style={styles.statBox}>
-            <Text style={styles.statIcon}>📅</Text>
-            <Text style={styles.statNumero}>{resumo.totalSemana}</Text>
-            <Text style={styles.statLabel}>Na semana</Text>
-          </Card>
+        <View style={styles.painelResumo}>
+          <View style={styles.resumoCol}>
+            <Text style={styles.resumoNumero}>{resumo.streak}</Text>
+            <Text style={styles.resumoLabel}>Dias seguidos</Text>
+          </View>
+          <View style={styles.resumoDivider} />
+          <View style={styles.resumoCol}>
+            <Text style={[styles.resumoNumero, { color: colors.accent }]}>
+              {resumo.taxaAcerto}
+              <Text style={styles.resumoPct}>%</Text>
+            </Text>
+            <Text style={styles.resumoLabel}>Acerto</Text>
+          </View>
+          <View style={styles.resumoDivider} />
+          <View style={styles.resumoCol}>
+            <Text style={[styles.resumoNumero, { color: colors.amber }]}>{resumo.totalSemana}</Text>
+            <Text style={styles.resumoLabel}>Na semana</Text>
+          </View>
         </View>
 
+        <View style={styles.secaoWrap}>
+          <Text style={styles.secao}>Revisões nos últimos 7 dias</Text>
+          <View style={styles.secaoRegua} />
+        </View>
         <Card style={styles.bloco}>
-          <Text style={styles.blocoTitulo}>Revisoes nos ultimos 7 dias</Text>
-          <Text style={styles.blocoSubtitulo}>Quantos cartoes voce revisou em cada dia.</Text>
+          <Text style={styles.blocoSubtitulo}>
+            Quantos cartões você revisou em cada dia.
+          </Text>
           <View style={styles.grafico}>
             {resumo.semana.map((dia, idx) => {
               const alturaRel = (dia.total / resumo.maxSemana) * 100;
@@ -125,22 +136,25 @@ export function StatsScreen() {
           </View>
         </Card>
 
+        <View style={styles.secaoWrap}>
+          <Text style={styles.secao}>Maturidade dos cartões</Text>
+          <View style={styles.secaoRegua} />
+        </View>
         <Card style={styles.bloco}>
-          <Text style={styles.blocoTitulo}>Maturidade dos cartoes</Text>
           <Text style={styles.blocoSubtitulo}>
-            Classificacao pelo intervalo atual de revisao espacada.
+            Classificação pelo intervalo atual de revisão espaçada.
           </Text>
           <View style={styles.maturidadeBarra}>
             <View
               style={[
                 styles.segmento,
-                { flex: Math.max(0.1, resumo.novos), backgroundColor: '#94A3B8' },
+                { flex: Math.max(0.1, resumo.novos), backgroundColor: colors.textSoft },
               ]}
             />
             <View
               style={[
                 styles.segmento,
-                { flex: Math.max(0.1, resumo.aprendendo), backgroundColor: colors.warning },
+                { flex: Math.max(0.1, resumo.aprendendo), backgroundColor: colors.amber },
               ]}
             />
             <View
@@ -152,27 +166,33 @@ export function StatsScreen() {
           </View>
           <View style={styles.legendaMaturidade}>
             <View style={styles.legendaItem}>
-              <View style={[styles.legendaDot, { backgroundColor: '#94A3B8' }]} />
-              <Text style={styles.legendaTexto}>Novos ({resumo.novos})</Text>
+              <View style={[styles.legendaDot, { backgroundColor: colors.textSoft }]} />
+              <Text style={styles.legendaTexto}>
+                Novos <Text style={styles.legendaNum}>{resumo.novos}</Text>
+              </Text>
             </View>
             <View style={styles.legendaItem}>
-              <View style={[styles.legendaDot, { backgroundColor: colors.warning }]} />
-              <Text style={styles.legendaTexto}>Aprendendo ({resumo.aprendendo})</Text>
+              <View style={[styles.legendaDot, { backgroundColor: colors.amber }]} />
+              <Text style={styles.legendaTexto}>
+                Aprendendo <Text style={styles.legendaNum}>{resumo.aprendendo}</Text>
+              </Text>
             </View>
             <View style={styles.legendaItem}>
               <View style={[styles.legendaDot, { backgroundColor: colors.accent }]} />
-              <Text style={styles.legendaTexto}>Maduros ({resumo.maduros})</Text>
+              <Text style={styles.legendaTexto}>
+                Maduros <Text style={styles.legendaNum}>{resumo.maduros}</Text>
+              </Text>
             </View>
           </View>
           <Text style={styles.notaRodape}>
-            Cartoes "maduros" possuem intervalo de revisao de 21 dias ou mais.
+            Cartões "maduros" possuem intervalo de revisão de 21 dias ou mais.
           </Text>
         </Card>
 
         {reviewLogs.length === 0 ? (
           <Card style={styles.vazioBloco}>
             <Text style={styles.vazioTexto}>
-              Voce ainda nao tem revisoes registradas. Comece a estudar um baralho para ver seus numeros aqui.
+              Você ainda não tem revisões registradas. Comece a estudar um baralho para ver seus números aqui.
             </Text>
           </Card>
         ) : null}
@@ -185,18 +205,89 @@ const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.background },
   topo: { paddingHorizontal: spacing.lg, paddingTop: spacing.sm },
   voltar: { paddingVertical: 6, alignSelf: 'flex-start' },
-  voltarTexto: { color: colors.primary, fontSize: 14, fontWeight: '600' },
+  voltarTexto: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 13,
+    color: colors.primaryDeep,
+    letterSpacing: 0.2,
+  },
   scroll: { padding: spacing.lg, paddingBottom: spacing.xl },
-  titulo: { fontSize: 26, fontWeight: '800', color: colors.text },
-  subtitulo: { fontSize: 13, color: colors.textMuted, marginTop: 4, marginBottom: spacing.lg },
-  linhaCards: { flexDirection: 'row', gap: spacing.sm, marginBottom: spacing.md },
-  statBox: { flex: 1, alignItems: 'center', paddingVertical: spacing.md },
-  statIcon: { fontSize: 22, marginBottom: 2 },
-  statNumero: { fontSize: 22, fontWeight: '800', color: colors.text },
-  statLabel: { fontSize: 10, color: colors.textMuted, textTransform: 'uppercase', letterSpacing: 0.6, marginTop: 2 },
+  eyebrow: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 10,
+    letterSpacing: 1.8,
+    color: colors.textSoft,
+    textTransform: 'uppercase',
+    marginBottom: 6,
+  },
+  titulo: {
+    fontFamily: fonts.display,
+    fontSize: 28,
+    color: colors.text,
+    letterSpacing: -0.5,
+    lineHeight: 32,
+  },
+  subtitulo: {
+    fontFamily: fonts.body,
+    fontSize: 14,
+    color: colors.textMuted,
+    marginTop: 6,
+    marginBottom: spacing.lg,
+    lineHeight: 21,
+  },
+  painelResumo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.lg,
+    paddingVertical: spacing.md,
+    marginBottom: spacing.md,
+  },
+  resumoCol: { flex: 1, alignItems: 'center' },
+  resumoDivider: { width: 1, height: 28, backgroundColor: colors.border },
+  resumoNumero: {
+    fontFamily: fonts.display,
+    fontSize: 28,
+    color: colors.primaryDeep,
+    letterSpacing: -0.5,
+    lineHeight: 32,
+  },
+  resumoPct: {
+    fontFamily: fonts.displayItalic,
+    fontSize: 18,
+    color: colors.accent,
+  },
+  resumoLabel: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 10,
+    color: colors.textMuted,
+    marginTop: 4,
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
+  },
+  secaoWrap: { marginTop: spacing.lg, marginBottom: spacing.sm },
+  secao: {
+    fontFamily: fonts.display,
+    fontSize: 18,
+    color: colors.text,
+    letterSpacing: -0.2,
+    marginBottom: 6,
+  },
+  secaoRegua: {
+    width: 32,
+    height: 2,
+    backgroundColor: colors.amber,
+  },
   bloco: { marginBottom: spacing.md, padding: spacing.md },
-  blocoTitulo: { fontSize: 15, fontWeight: '700', color: colors.text },
-  blocoSubtitulo: { fontSize: 12, color: colors.textMuted, marginTop: 2, marginBottom: spacing.md },
+  blocoSubtitulo: {
+    fontFamily: fonts.body,
+    fontSize: 12,
+    color: colors.textMuted,
+    marginBottom: spacing.md,
+    lineHeight: 18,
+  },
   grafico: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -213,14 +304,28 @@ const styles = StyleSheet.create({
   },
   coluna: {
     width: '100%',
-    backgroundColor: colors.primary,
-    borderRadius: 6,
+    backgroundColor: colors.primaryDeep,
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: 4,
     minHeight: 4,
   },
-  colunaHoje: { backgroundColor: colors.accent },
+  colunaHoje: { backgroundColor: colors.amber },
   colunaVazia: { backgroundColor: colors.border },
-  colunaValor: { fontSize: 11, fontWeight: '700', color: colors.text, marginTop: 6 },
-  colunaLabel: { fontSize: 10, color: colors.textMuted, marginTop: 2 },
+  colunaValor: {
+    fontFamily: fonts.display,
+    fontSize: 13,
+    color: colors.text,
+    marginTop: 6,
+    letterSpacing: -0.2,
+  },
+  colunaLabel: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 10,
+    color: colors.textSoft,
+    marginTop: 2,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+  },
   maturidadeBarra: {
     flexDirection: 'row',
     height: 14,
@@ -229,11 +334,33 @@ const styles = StyleSheet.create({
     backgroundColor: colors.border,
   },
   segmento: { height: '100%' },
-  legendaMaturidade: { marginTop: spacing.sm, gap: 6 },
-  legendaItem: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  legendaMaturidade: { marginTop: spacing.md, gap: 8 },
+  legendaItem: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   legendaDot: { width: 10, height: 10, borderRadius: 5 },
-  legendaTexto: { fontSize: 12, color: colors.text },
-  notaRodape: { fontSize: 11, color: colors.textSoft, marginTop: spacing.sm },
+  legendaTexto: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.text,
+  },
+  legendaNum: {
+    fontFamily: fonts.displayItalic,
+    fontSize: 14,
+    color: colors.textMuted,
+  },
+  notaRodape: {
+    fontFamily: fonts.body,
+    fontSize: 11,
+    color: colors.textSoft,
+    marginTop: spacing.md,
+    lineHeight: 17,
+    fontStyle: 'italic',
+  },
   vazioBloco: { alignItems: 'center', padding: spacing.lg },
-  vazioTexto: { fontSize: 13, color: colors.textMuted, textAlign: 'center', lineHeight: 19 },
+  vazioTexto: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.textMuted,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
 });

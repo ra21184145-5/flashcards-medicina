@@ -6,15 +6,16 @@ import { Button } from '../components/Button';
 import { EmptyState } from '../components/EmptyState';
 import { useData } from '../context/DataContext';
 import { calcularProximaRevisao, cardsParaRevisar } from '../services/spacedRepetition';
-import { colors, spacing } from '../theme/colors';
+import { colors, radii, spacing } from '../theme/colors';
+import { fonts } from '../theme/typography';
 import { StackNav, StackRoute } from '../navigation/types';
 import { Qualidade } from '../types';
 
 const BOTOES: { q: Qualidade; label: string; cor: string; hint: string }[] = [
-  { q: 1, label: 'Errei', cor: '#E53935', hint: 'Nao lembrei' },
-  { q: 3, label: 'Dificil', cor: '#F2A516', hint: 'Com esforco' },
-  { q: 4, label: 'Bom', cor: '#1F6FEB', hint: 'Lembrei' },
-  { q: 5, label: 'Facil', cor: '#11B981', hint: 'Sem esforco' },
+  { q: 1, label: 'Errei', cor: '#B4382E', hint: 'não lembrei' },
+  { q: 3, label: 'Difícil', cor: '#C68A16', hint: 'com esforço' },
+  { q: 4, label: 'Bom', cor: '#1F6FEB', hint: 'lembrei' },
+  { q: 5, label: 'Fácil', cor: '#0A8055', hint: 'sem esforço' },
 ];
 
 export function StudyScreen() {
@@ -41,7 +42,6 @@ export function StudyScreen() {
     await atualizarCard(atualizado);
     await registrarRevisao(atualizado, qualidade);
     if (indice + 1 >= fila.length) {
-      // acabou - volta pro deck
       nav.goBack();
       return;
     }
@@ -75,11 +75,18 @@ export function StudyScreen() {
   return (
     <ScreenContainer>
       <View style={styles.topo}>
-        <Pressable onPress={() => nav.goBack()} style={styles.voltar}>
+        <Pressable onPress={() => nav.goBack()} hitSlop={8} style={styles.voltar}>
           <Text style={styles.voltarTexto}>← Sair</Text>
         </Pressable>
-        <Text style={styles.deckNome} numberOfLines={1}>{deck.nome}</Text>
-        <Text style={styles.contador}>{indice + 1}/{fila.length}</Text>
+        <View style={styles.topoMeio}>
+          <Text style={styles.topoLabel}>Sessão</Text>
+          <Text style={styles.deckNome} numberOfLines={1}>{deck.nome}</Text>
+        </View>
+        <Text style={styles.contador}>
+          <Text style={styles.contadorAtual}>{indice + 1}</Text>
+          <Text style={styles.contadorBarra}> / </Text>
+          <Text>{fila.length}</Text>
+        </Text>
       </View>
 
       <View style={styles.progressoWrap}>
@@ -88,7 +95,10 @@ export function StudyScreen() {
 
       <View style={styles.cardArea}>
         <View style={styles.card}>
-          <Text style={styles.labelSecao}>Pergunta</Text>
+          <View style={styles.cardHeader}>
+            <Text style={styles.labelSecao}>Pergunta</Text>
+            <Text style={styles.cardNumero}>{String(indice + 1).padStart(2, '0')}</Text>
+          </View>
           <Text style={styles.frente}>{atual.frente}</Text>
 
           {revelou ? (
@@ -97,7 +107,13 @@ export function StudyScreen() {
               <Text style={styles.labelSecao}>Resposta</Text>
               <Text style={styles.verso}>{atual.verso}</Text>
             </>
-          ) : null}
+          ) : (
+            <View style={styles.ocultoHint}>
+              <Text style={styles.ocultoTexto}>
+                Pense na resposta antes de revelar — a recordação ativa fortalece a memória.
+              </Text>
+            </View>
+          )}
         </View>
       </View>
 
@@ -105,18 +121,25 @@ export function StudyScreen() {
         {!revelou ? (
           <Button title="Mostrar resposta" onPress={() => setRevelou(true)} />
         ) : (
-          <View style={styles.botoes}>
-            {BOTOES.map((b) => (
-              <Pressable
-                key={b.q}
-                onPress={() => responder(b.q)}
-                style={[styles.botaoQ, { backgroundColor: b.cor }]}
-              >
-                <Text style={styles.botaoTexto}>{b.label}</Text>
-                <Text style={styles.botaoHint}>{b.hint}</Text>
-              </Pressable>
-            ))}
-          </View>
+          <>
+            <Text style={styles.rodapeLabel}>Como você se saiu?</Text>
+            <View style={styles.botoes}>
+              {BOTOES.map((b) => (
+                <Pressable
+                  key={b.q}
+                  onPress={() => responder(b.q)}
+                  style={({ pressed }) => [
+                    styles.botaoQ,
+                    { backgroundColor: b.cor },
+                    pressed && { opacity: 0.85 },
+                  ]}
+                >
+                  <Text style={styles.botaoTexto}>{b.label}</Text>
+                  <Text style={styles.botaoHint}>{b.hint}</Text>
+                </Pressable>
+              ))}
+            </View>
+          </>
         )}
       </View>
     </ScreenContainer>
@@ -124,20 +147,51 @@ export function StudyScreen() {
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1, backgroundColor: colors.background },
   topo: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
+    gap: spacing.md,
   },
-  voltar: { padding: 6 },
-  voltarTexto: { color: colors.primary, fontSize: 14, fontWeight: '600' },
-  deckNome: { flex: 1, textAlign: 'center', fontSize: 14, fontWeight: '600', color: colors.text, marginHorizontal: 8 },
-  contador: { fontSize: 13, color: colors.textMuted, fontWeight: '600' },
+  voltar: { paddingVertical: 6 },
+  voltarTexto: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 13,
+    color: colors.primaryDeep,
+  },
+  topoMeio: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  topoLabel: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 9,
+    letterSpacing: 1.6,
+    color: colors.textSoft,
+    textTransform: 'uppercase',
+  },
+  deckNome: {
+    fontFamily: fonts.display,
+    fontSize: 15,
+    color: colors.text,
+    letterSpacing: -0.2,
+  },
+  contador: {
+    fontFamily: fonts.displayItalic,
+    fontSize: 14,
+    color: colors.textMuted,
+  },
+  contadorAtual: {
+    fontFamily: fonts.display,
+    color: colors.primaryDeep,
+  },
+  contadorBarra: {
+    color: colors.textSoft,
+  },
   progressoWrap: {
-    height: 4,
+    height: 3,
     backgroundColor: colors.border,
     marginHorizontal: spacing.lg,
     borderRadius: 2,
@@ -145,7 +199,7 @@ const styles = StyleSheet.create({
   },
   progresso: {
     height: '100%',
-    backgroundColor: colors.primary,
+    backgroundColor: colors.primaryDeep,
   },
   cardArea: {
     flex: 1,
@@ -154,36 +208,91 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: colors.card,
-    borderRadius: 18,
+    borderRadius: radii.lg,
     borderWidth: 1,
     borderColor: colors.border,
     padding: spacing.xl,
-    minHeight: 240,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 3,
+    minHeight: 260,
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
+    elevation: 4,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing.sm,
+  },
+  cardNumero: {
+    fontFamily: fonts.displayItalic,
+    fontSize: 14,
+    color: colors.amber,
+    letterSpacing: 0.5,
   },
   labelSecao: {
-    fontSize: 11,
-    color: colors.textMuted,
-    fontWeight: '700',
-    letterSpacing: 1,
+    fontFamily: fonts.bodyMedium,
+    fontSize: 10,
+    color: colors.textSoft,
+    letterSpacing: 1.6,
     textTransform: 'uppercase',
-    marginBottom: 8,
+    marginBottom: 6,
   },
-  frente: { fontSize: 20, fontWeight: '600', color: colors.text, lineHeight: 28 },
+  frente: {
+    fontFamily: fonts.display,
+    fontSize: 22,
+    color: colors.text,
+    lineHeight: 30,
+    letterSpacing: -0.3,
+  },
   divisor: { height: 1, backgroundColor: colors.border, marginVertical: spacing.md },
-  verso: { fontSize: 17, color: colors.text, lineHeight: 24 },
+  verso: {
+    fontFamily: fonts.body,
+    fontSize: 16,
+    color: colors.text,
+    lineHeight: 24,
+  },
+  ocultoHint: {
+    marginTop: spacing.lg,
+    paddingTop: spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  ocultoTexto: {
+    fontFamily: fonts.displayItalic,
+    fontSize: 13,
+    color: colors.textSoft,
+    lineHeight: 20,
+  },
   rodape: { padding: spacing.lg, paddingBottom: spacing.xl },
+  rodapeLabel: {
+    fontFamily: fonts.bodyMedium,
+    fontSize: 10,
+    color: colors.textSoft,
+    letterSpacing: 1.6,
+    textTransform: 'uppercase',
+    marginBottom: spacing.sm,
+    textAlign: 'center',
+  },
   botoes: { flexDirection: 'row', gap: spacing.sm },
   botaoQ: {
     flex: 1,
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: radii.md,
     alignItems: 'center',
   },
-  botaoTexto: { color: '#fff', fontSize: 13, fontWeight: '700' },
-  botaoHint: { color: 'rgba(255,255,255,0.85)', fontSize: 10, marginTop: 2 },
+  botaoTexto: {
+    fontFamily: fonts.bodyBold,
+    color: '#fff',
+    fontSize: 13,
+    letterSpacing: 0.3,
+  },
+  botaoHint: {
+    fontFamily: fonts.body,
+    color: 'rgba(255,255,255,0.85)',
+    fontSize: 10,
+    marginTop: 2,
+    letterSpacing: 0.2,
+  },
 });

@@ -6,19 +6,23 @@ import {
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { BrandMark } from '../components/BrandMark';
 import { useAuth } from '../context/AuthContext';
-import { colors, layout, radii, spacing } from '../theme/colors';
+import { colors, radii, spacing } from '../theme/colors';
 import { fonts } from '../theme/typography';
 import { StackNav } from '../navigation/types';
 
 export function RegisterScreen() {
   const nav = useNavigation<StackNav>();
   const { cadastrar } = useAuth();
+  const { width } = useWindowDimensions();
+  const wide = width >= 960;
+
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
@@ -37,11 +41,99 @@ export function RegisterScreen() {
     }
   }
 
+  const hero = (
+    <View style={[styles.hero, wide && styles.heroWide]}>
+      <View style={styles.eyebrow}>
+        <View style={styles.eyebrowDot} />
+        <Text style={styles.eyebrowText}>Nova matrícula</Text>
+      </View>
+
+      <View style={styles.brandBlock}>
+        <BrandMark size={wide ? 60 : 52} />
+      </View>
+
+      <Text style={[styles.titulo, wide && styles.tituloWide]}>Criar conta</Text>
+      <Text style={styles.subtitulo}>
+        Comece a organizar seus estudos e revisões em um só lugar — um acervo
+        pessoal que te acompanha pelo curso.
+      </Text>
+
+      {wide ? (
+        <View style={styles.checklist}>
+          <View style={styles.checkItem}>
+            <View style={styles.checkDot} />
+            <Text style={styles.checkText}>
+              Baralhos ilimitados, privados ou compartilhados em grupo.
+            </Text>
+          </View>
+          <View style={styles.checkItem}>
+            <View style={styles.checkDot} />
+            <Text style={styles.checkText}>
+              Histórico de revisões e progresso com gráfico semanal.
+            </Text>
+          </View>
+          <View style={styles.checkItem}>
+            <View style={styles.checkDot} />
+            <Text style={styles.checkText}>
+              Geração assistida por IA — você revisa antes de salvar.
+            </Text>
+          </View>
+        </View>
+      ) : null}
+    </View>
+  );
+
+  const form = (
+    <View style={[styles.formColumn, wide && styles.formColumnWide]}>
+      <View style={styles.card}>
+        <Text style={styles.cardTitulo}>Dados da conta</Text>
+        <Text style={styles.cardSub}>
+          Seus dados ficam no dispositivo. Você pode apagar a qualquer momento.
+        </Text>
+
+        <Input
+          label="Nome"
+          placeholder="Seu nome"
+          value={nome}
+          onChangeText={setNome}
+        />
+        <Input
+          label="E-mail"
+          placeholder="voce@exemplo.com"
+          autoCapitalize="none"
+          keyboardType="email-address"
+          value={email}
+          onChangeText={setEmail}
+        />
+        <Input
+          label="Senha"
+          placeholder="No mínimo 6 caracteres"
+          secureTextEntry
+          value={senha}
+          onChangeText={setSenha}
+          hint="Use uma senha que você lembre em revisões futuras."
+        />
+        {erro ? <Text style={styles.erro}>{erro}</Text> : null}
+
+        <Button title="Criar conta" onPress={handleCadastrar} loading={loading} />
+
+        <View style={styles.voltarLinha}>
+          <Text style={styles.voltarTexto}>Já tem cadastro?</Text>
+          <Text style={styles.voltarLink} onPress={() => nav.goBack()}>
+            Entrar
+          </Text>
+        </View>
+      </View>
+    </View>
+  );
+
   return (
     <View style={styles.root}>
       <View pointerEvents="none" style={styles.bgLayer}>
-        <View style={[styles.blob, styles.blobTop]} />
-        <View style={[styles.blob, styles.blobBottom]} />
+        <View style={styles.grain} />
+        <View style={styles.blobAccent} />
+        <View style={styles.blobBlue} />
+        <View style={styles.ruleLeft} />
       </View>
 
       <KeyboardAvoidingView
@@ -53,55 +145,18 @@ export function RegisterScreen() {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.container}>
-            <View style={styles.eyebrow}>
-              <View style={styles.eyebrowDot} />
-              <Text style={styles.eyebrowText}>Nova matrícula</Text>
-            </View>
-
-            <View style={styles.brandBlock}>
-              <BrandMark size={60} />
-            </View>
-
-            <Text style={styles.titulo}>Criar conta</Text>
-            <Text style={styles.subtitulo}>
-              Comece a organizar seus estudos e revisões em um só lugar.
-            </Text>
-
-            <View style={styles.card}>
-              <Input
-                label="Nome"
-                placeholder="Seu nome"
-                value={nome}
-                onChangeText={setNome}
-              />
-              <Input
-                label="E-mail"
-                placeholder="voce@exemplo.com"
-                autoCapitalize="none"
-                keyboardType="email-address"
-                value={email}
-                onChangeText={setEmail}
-              />
-              <Input
-                label="Senha"
-                placeholder="No mínimo 6 caracteres"
-                secureTextEntry
-                value={senha}
-                onChangeText={setSenha}
-                hint="Use uma senha que você lembre em revisões futuras."
-              />
-              {erro ? <Text style={styles.erro}>{erro}</Text> : null}
-
-              <Button title="Criar conta" onPress={handleCadastrar} loading={loading} />
-
-              <View style={styles.voltarLinha}>
-                <Text style={styles.voltarTexto}>Já tem cadastro?</Text>
-                <Text style={styles.voltarLink} onPress={() => nav.goBack()}>
-                  Entrar
-                </Text>
+          <View style={[styles.shell, wide && styles.shellWide]}>
+            {wide ? (
+              <View style={styles.twoCol}>
+                {hero}
+                {form}
               </View>
-            </View>
+            ) : (
+              <>
+                {hero}
+                {form}
+              </>
+            )}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -115,35 +170,66 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     alignItems: 'center',
-    paddingVertical: spacing.xxl,
+    paddingVertical: spacing.xl,
     paddingHorizontal: spacing.lg,
   },
-  container: {
+  shell: {
     width: '100%',
-    maxWidth: layout.maxContent,
+    maxWidth: 480,
+  },
+  shellWide: {
+    maxWidth: 1120,
+    paddingVertical: spacing.xl,
+  },
+  twoCol: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 72,
   },
 
   bgLayer: {
     ...StyleSheet.absoluteFillObject,
     overflow: 'hidden',
   },
-  blob: {
+  grain: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: colors.surfaceMuted,
+    opacity: 0.3,
+  },
+  blobAccent: {
     position: 'absolute',
-    width: 480,
-    height: 480,
-    borderRadius: 240,
-    opacity: 0.13,
+    top: -140,
+    right: -100,
+    width: 300,
+    height: 300,
+    borderRadius: 150,
+    backgroundColor: colors.accentSoft,
+    opacity: 0.55,
   },
-  blobTop: {
-    top: -220,
-    left: -160,
-    backgroundColor: colors.accent,
+  blobBlue: {
+    position: 'absolute',
+    bottom: -160,
+    left: -120,
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    backgroundColor: colors.primarySoft,
+    opacity: 0.5,
   },
-  blobBottom: {
-    bottom: -220,
-    right: -160,
-    backgroundColor: colors.primary,
-    opacity: 0.14,
+  ruleLeft: {
+    position: 'absolute',
+    top: 48,
+    bottom: 48,
+    left: 32,
+    width: 1,
+    backgroundColor: colors.border,
+    opacity: 0.6,
+  },
+
+  hero: { width: '100%' },
+  heroWide: {
+    flex: 1,
+    maxWidth: 520,
   },
 
   eyebrow: {
@@ -169,24 +255,65 @@ const styles = StyleSheet.create({
 
   brandBlock: {
     alignItems: 'flex-start',
-    marginBottom: spacing.md,
+    marginBottom: spacing.lg,
   },
 
   titulo: {
     fontFamily: fonts.display,
-    fontSize: 34,
-    lineHeight: 38,
+    fontSize: 38,
+    lineHeight: 42,
     color: colors.text,
-    letterSpacing: -0.6,
+    letterSpacing: -0.8,
     marginBottom: spacing.sm,
+  },
+  tituloWide: {
+    fontSize: 58,
+    lineHeight: 60,
+    letterSpacing: -1.5,
   },
   subtitulo: {
     fontFamily: fonts.body,
     fontSize: 15,
-    lineHeight: 22,
+    lineHeight: 23,
     color: colors.textMuted,
     marginBottom: spacing.xl,
-    maxWidth: 420,
+    maxWidth: 460,
+  },
+
+  checklist: {
+    gap: spacing.sm,
+    marginBottom: spacing.lg,
+  },
+  checkItem: {
+    flexDirection: 'row',
+    gap: spacing.md,
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  checkDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.primary,
+  },
+  checkText: {
+    flex: 1,
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.textMuted,
+    lineHeight: 19,
+  },
+
+  formColumn: {
+    width: '100%',
+    marginTop: spacing.lg,
+  },
+  formColumnWide: {
+    flex: 0.95,
+    marginTop: 0,
+    maxWidth: 440,
   },
 
   card: {
@@ -196,10 +323,24 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     shadowColor: colors.shadow,
-    shadowOpacity: 0.06,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: 12 },
-    elevation: 3,
+    shadowOpacity: 0.08,
+    shadowRadius: 32,
+    shadowOffset: { width: 0, height: 16 },
+    elevation: 4,
+  },
+  cardTitulo: {
+    fontFamily: fonts.display,
+    fontSize: 20,
+    color: colors.text,
+    letterSpacing: -0.3,
+    marginBottom: 4,
+  },
+  cardSub: {
+    fontFamily: fonts.body,
+    fontSize: 13,
+    color: colors.textMuted,
+    marginBottom: spacing.md,
+    lineHeight: 19,
   },
   erro: {
     fontFamily: fonts.body,
