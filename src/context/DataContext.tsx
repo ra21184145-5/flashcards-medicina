@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { storage } from '../services/storage';
+import { cloudSync } from '../services/cloudSync';
 import { Configuracoes, Deck, Flashcard, Grupo, Privacy, Qualidade, ReviewLog } from '../types';
 import { useAuth } from './AuthContext';
 
@@ -22,6 +23,7 @@ interface DataContextValue {
   registrarRevisao: (card: Flashcard, qualidade: Qualidade) => Promise<void>;
   atualizarConfig: (parcial: Partial<Configuracoes>) => Promise<void>;
   semearDadosExemplo: () => Promise<void>;
+  listarDecksPublicosRemotos: () => Promise<Deck[]>;
 }
 
 const DataContext = createContext<DataContextValue | undefined>(undefined);
@@ -43,8 +45,21 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [reviewLogs, setReviewLogs] = useState<ReviewLog[]>([]);
   const [config, setConfig] = useState<Configuracoes>(CONFIG_INICIAL);
 
+  // Refs para evitar capturas obsoletas nas closures de persistir*.
+  const decksRef = useRef<Deck[]>([]);
+  const cardsRef = useRef<Flashcard[]>([]);
+  const gruposRef = useRef<Grupo[]>([]);
+  const logsRef = useRef<ReviewLog[]>([]);
+
+  useEffect(() => { decksRef.current = decks; }, [decks]);
+  useEffect(() => { cardsRef.current = cards; }, [cards]);
+  useEffect(() => { gruposRef.current = grupos; }, [grupos]);
+  useEffect(() => { logsRef.current = reviewLogs; }, [reviewLogs]);
+
   useEffect(() => {
+    let cancelado = false;
     (async () => {
+      // 1) Carrega do cache local para renderizacao imediata (offline-first).
       const [d, c, g, logs, cfg] = await Promise.all([
         storage.getDecks(),
         storage.getCards(),
@@ -52,32 +67,68 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         storage.getReviewLogs(),
         storage.getConfig(),
       ]);
+      if (cancelado) return;
       setDecks(d);
       setCards(c);
       setGrupos(g);
       setReviewLogs(logs);
       setConfig(cfg);
+
+      // 2) Se ha usuario autenticado, puxa o estado remoto e atualiza.
+      if (!user) return;
+      try {
+        const remoto = await cloudSync.pullUserData(user.id);
+        if (cancelado) return;
+        setDecks(remoto.decks);
+        setCards(remoto.cards);
+        setGrupos(remoto.grupos);
+        setReviewLogs(remoto.reviewLogs);
+        await Promise.all([
+          storage.setDecks(remoto.decks),
+          storage.setCards(remoto.cards),
+          storage.setGrupos(remoto.grupos),
+          storage.setReviewLogs(remoto.reviewLogs),
+        ]);
+        if (remoto.configRemoto) {
+          const merged = { ...cfg, ...remoto.configRemoto };
+          setConfig(merged);
+          await storage.setConfig(merged);
+        }
+      } catch (e) {
+        console.warn('Falha ao puxar dados remotos:', e);
+      }
     })();
-  }, []);
+    return () => {
+      cancelado = true;
+    };
+  }, [user?.id]);
 
   const persistirDecks = useCallback(async (novos: Deck[]) => {
+    const antigos = decksRef.current;
     setDecks(novos);
     await storage.setDecks(novos);
+    cloudSync.syncDecks(antigos, novos).catch((e) => console.warn('sync decks:', e));
   }, []);
 
   const persistirCards = useCallback(async (novos: Flashcard[]) => {
+    const antigos = cardsRef.current;
     setCards(novos);
     await storage.setCards(novos);
+    cloudSync.syncCards(antigos, novos).catch((e) => console.warn('sync cards:', e));
   }, []);
 
   const persistirGrupos = useCallback(async (novos: Grupo[]) => {
+    const antigos = gruposRef.current;
     setGrupos(novos);
     await storage.setGrupos(novos);
+    cloudSync.syncGrupos(antigos, novos).catch((e) => console.warn('sync grupos:', e));
   }, []);
 
   const persistirLogs = useCallback(async (novos: ReviewLog[]) => {
+    const antigos = logsRef.current;
     setReviewLogs(novos);
     await storage.setReviewLogs(novos);
+    cloudSync.syncReviewLogs(antigos, novos).catch((e) => console.warn('sync logs:', e));
   }, []);
 
   async function criarDeck({ nome, descricao, privacidade, grupoId }: { nome: string; descricao: string; privacidade: Privacy; grupoId?: string }) {
@@ -108,9 +159,11 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   }
 
   function novoCardBase(deckId: string, frente: string, verso: string): Flashcard {
+    if (!user) throw new Error('Usuario nao autenticado.');
     return {
       id: gerarId('card'),
       deckId,
+      donoId: user.id,
       frente,
       verso,
       criadoEm: Date.now(),
@@ -191,14 +244,15 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   }
 
   async function registrarRevisao(card: Flashcard, qualidade: Qualidade) {
+    if (!user) return;
     const log: ReviewLog = {
       id: gerarId('log'),
       cardId: card.id,
       deckId: card.deckId,
+      donoId: user.id,
       qualidade,
       timestamp: Date.now(),
     };
-    // Limitamos o historico a 5000 entradas para nao inflar o storage.
     const novos = [log, ...reviewLogs].slice(0, 5000);
     await persistirLogs(novos);
   }
@@ -207,6 +261,18 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     const novo = { ...config, ...parcial };
     setConfig(novo);
     await storage.setConfig(novo);
+    if (user) {
+      cloudSync.syncConfig(user.id, novo).catch((e) => console.warn('sync config:', e));
+    }
+  }
+
+  async function listarDecksPublicosRemotos(): Promise<Deck[]> {
+    try {
+      return await cloudSync.listarDecksPublicos();
+    } catch (e) {
+      console.warn('falha ao listar publicos remotos:', e);
+      return decks.filter((d) => d.privacidade === 'publico');
+    }
   }
 
   async function semearDadosExemplo() {
@@ -234,38 +300,38 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     const deckMicro: Deck = {
       id: gerarId('deck'),
       nome: 'Microbiologia Basica',
-      descricao: 'Deck publico compartilhado pela comunidade.',
-      donoId: 'outro_user',
+      descricao: 'Deck publico para explorar na aba Publicos.',
+      donoId: user.id,
       privacidade: 'publico',
       criadoEm: Date.now() - 3 * 86400000,
       totalCards: 2,
     };
 
-    const baseCard = (deckId: string, frente: string, verso: string, offset: number): Flashcard => ({
+    const baseCard = (deckId: string, frente: string, verso: string): Flashcard => ({
       id: gerarId('card'),
       deckId,
+      donoId: user.id,
       frente,
       verso,
       criadoEm: Date.now(),
       intervalo: 0,
       repeticoes: 0,
       facilidade: 2.5,
-      proximaRevisao: Date.now() - offset,
+      proximaRevisao: Date.now(),
     });
 
     const novosCards: Flashcard[] = [
-      baseCard(deckCardio.id, 'Qual o mecanismo de acao do Losartan?', 'Bloqueador do receptor AT1 da angiotensina II (BRA).', 0),
-      baseCard(deckCardio.id, 'Qual classe a Amiodarona pertence?', 'Antiarritmico classe III - bloqueio de canais de K+.', 0),
-      baseCard(deckCardio.id, 'IECA e tosse seca: por que ocorre?', 'Acumulo de bradicinina pela inibicao da ECA.', 0),
-      baseCard(deckCardio.id, 'Qual a dose inicial do Enalapril em HAS?', '5 mg/dia, podendo ser ajustada ate 40 mg/dia.', 0),
-      baseCard(deckAnato.id, 'Por qual forame passa o nervo trigemeo V3?', 'Forame oval.', 0),
-      baseCard(deckAnato.id, 'Quais ossos compoem o nariz externo?', 'Nasais, frontal (parte), maxilas e cartilagens.', 0),
-      baseCard(deckAnato.id, 'O que passa pelo canal optico?', 'Nervo optico (II) e arteria oftalmica.', 0),
-      baseCard(deckMicro.id, 'Qual bacteria causa tuberculose?', 'Mycobacterium tuberculosis.', 0),
-      baseCard(deckMicro.id, 'Coloracao de Gram: gram-positivas coram de?', 'Roxo/violeta.', 0),
+      baseCard(deckCardio.id, 'Qual o mecanismo de acao do Losartan?', 'Bloqueador do receptor AT1 da angiotensina II (BRA).'),
+      baseCard(deckCardio.id, 'Qual classe a Amiodarona pertence?', 'Antiarritmico classe III - bloqueio de canais de K+.'),
+      baseCard(deckCardio.id, 'IECA e tosse seca: por que ocorre?', 'Acumulo de bradicinina pela inibicao da ECA.'),
+      baseCard(deckCardio.id, 'Qual a dose inicial do Enalapril em HAS?', '5 mg/dia, podendo ser ajustada ate 40 mg/dia.'),
+      baseCard(deckAnato.id, 'Por qual forame passa o nervo trigemeo V3?', 'Forame oval.'),
+      baseCard(deckAnato.id, 'Quais ossos compoem o nariz externo?', 'Nasais, frontal (parte), maxilas e cartilagens.'),
+      baseCard(deckAnato.id, 'O que passa pelo canal optico?', 'Nervo optico (II) e arteria oftalmica.'),
+      baseCard(deckMicro.id, 'Qual bacteria causa tuberculose?', 'Mycobacterium tuberculosis.'),
+      baseCard(deckMicro.id, 'Coloracao de Gram: gram-positivas coram de?', 'Roxo/violeta.'),
     ];
 
-    // Gera alguns logs simulados dos ultimos 7 dias para popular a tela de estatisticas.
     const agora = Date.now();
     const UM_DIA = 24 * 60 * 60 * 1000;
     const logsSimulados: ReviewLog[] = [];
@@ -279,6 +345,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           id: gerarId('log'),
           cardId: card.id,
           deckId: card.deckId,
+          donoId: user.id,
           qualidade: qualidadesExemplo[contador % qualidadesExemplo.length],
           timestamp: agora - dia * UM_DIA - i * 3600_000,
         });
@@ -323,6 +390,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         registrarRevisao,
         atualizarConfig,
         semearDadosExemplo,
+        listarDecksPublicosRemotos,
       }}
     >
       {children}

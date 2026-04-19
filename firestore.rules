@@ -1,0 +1,57 @@
+rules_version = '2';
+
+// Regras de seguranca do Firestore para o app Flashcards Medicina.
+// Principio: cada usuario le e escreve apenas os proprios dados.
+// Decks marcados como publicos sao legiveis por qualquer usuario autenticado.
+// Grupos sao legiveis por qualquer autenticado; escrita restrita ao dono.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Perfil e configuracoes do usuario.
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Baralhos: dono tem acesso total; baralhos publicos sao legiveis por todos.
+    match /decks/{deckId} {
+      allow read: if request.auth != null && (
+        resource.data.privacidade == 'publico' ||
+        resource.data.donoId == request.auth.uid
+      );
+      allow create: if request.auth != null &&
+        request.resource.data.donoId == request.auth.uid;
+      allow update, delete: if request.auth != null &&
+        resource.data.donoId == request.auth.uid;
+    }
+
+    // Cartoes: somente o dono tem acesso.
+    match /cards/{cardId} {
+      allow read: if request.auth != null &&
+        resource.data.donoId == request.auth.uid;
+      allow create: if request.auth != null &&
+        request.resource.data.donoId == request.auth.uid;
+      allow update, delete: if request.auth != null &&
+        resource.data.donoId == request.auth.uid;
+    }
+
+    // Grupos: leitura por qualquer autenticado; escrita restrita ao dono.
+    match /grupos/{grupoId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null &&
+        request.resource.data.donoId == request.auth.uid;
+      allow update, delete: if request.auth != null &&
+        resource.data.donoId == request.auth.uid;
+    }
+
+    // Logs de revisao: somente o dono.
+    match /reviewLogs/{logId} {
+      allow read: if request.auth != null &&
+        resource.data.donoId == request.auth.uid;
+      allow create: if request.auth != null &&
+        request.resource.data.donoId == request.auth.uid;
+      allow delete: if request.auth != null &&
+        resource.data.donoId == request.auth.uid;
+    }
+  }
+}

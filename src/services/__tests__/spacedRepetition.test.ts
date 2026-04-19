@@ -7,6 +7,7 @@ function cardBase(parcial: Partial<Flashcard> = {}): Flashcard {
   return {
     id: 'c1',
     deckId: 'd1',
+    donoId: 'u1',
     frente: 'Qual o mecanismo de acao do Losartan?',
     verso: 'Bloqueador do receptor AT1.',
     criadoEm: Date.now(),

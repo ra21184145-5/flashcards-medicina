@@ -1,5 +1,5 @@
-import React from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Card } from '../components/Card';
@@ -8,11 +8,33 @@ import { EmptyState } from '../components/EmptyState';
 import { useData } from '../context/DataContext';
 import { colors, spacing } from '../theme/colors';
 import { StackNav } from '../navigation/types';
+import { Deck } from '../types';
 
 export function PublicDecksScreen() {
   const nav = useNavigation<StackNav>();
-  const { decks } = useData();
-  const publicos = decks.filter((d) => d.privacidade === 'publico');
+  const { decks, listarDecksPublicosRemotos } = useData();
+  const [remotos, setRemotos] = useState<Deck[]>([]);
+  const [atualizando, setAtualizando] = useState(false);
+
+  async function atualizar() {
+    setAtualizando(true);
+    try {
+      const lista = await listarDecksPublicosRemotos();
+      setRemotos(lista);
+    } finally {
+      setAtualizando(false);
+    }
+  }
+
+  useEffect(() => {
+    atualizar();
+  }, []);
+
+  // Une publicos locais + remotos, removendo duplicatas pelo id.
+  const mapa = new Map<string, Deck>();
+  for (const d of decks) if (d.privacidade === 'publico') mapa.set(d.id, d);
+  for (const d of remotos) if (!mapa.has(d.id)) mapa.set(d.id, d);
+  const publicos = Array.from(mapa.values());
 
   return (
     <SafeAreaView style={styles.flex} edges={['top']}>
@@ -24,6 +46,7 @@ export function PublicDecksScreen() {
         data={publicos}
         keyExtractor={(d) => d.id}
         contentContainerStyle={styles.lista}
+        refreshControl={<RefreshControl refreshing={atualizando} onRefresh={atualizar} />}
         ListEmptyComponent={
           <EmptyState
             titulo="Nenhum baralho publico disponivel"
