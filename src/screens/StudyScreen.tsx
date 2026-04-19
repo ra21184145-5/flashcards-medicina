@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ScreenContainer } from '../components/ScreenContainer';
 import { Button } from '../components/Button';
 import { EmptyState } from '../components/EmptyState';
 import { useData } from '../context/DataContext';
@@ -51,29 +51,29 @@ export function StudyScreen() {
 
   if (!deck) {
     return (
-      <SafeAreaView style={styles.flex}>
+      <ScreenContainer edges={['top', 'bottom']}>
         <EmptyState titulo="Baralho nao encontrado" icone="❓" />
-      </SafeAreaView>
+      </ScreenContainer>
     );
   }
 
   if (!atual) {
     return (
-      <SafeAreaView style={styles.flex}>
+      <ScreenContainer edges={['top', 'bottom']}>
         <EmptyState
           titulo="Nada para revisar agora"
           descricao="Voce esta em dia com esse baralho. Volte mais tarde."
           icone="✅"
           acao={<Button title="Voltar" onPress={() => nav.goBack()} />}
         />
-      </SafeAreaView>
+      </ScreenContainer>
     );
   }
 
   const progresso = ((indice) / fila.length) * 100;
 
   return (
-    <SafeAreaView style={styles.flex} edges={['top']}>
+    <ScreenContainer>
       <View style={styles.topo}>
         <Pressable onPress={() => nav.goBack()} style={styles.voltar}>
           <Text style={styles.voltarTexto}>← Sair</Text>
@@ -119,7 +119,7 @@ export function StudyScreen() {
           </View>
         )}
       </View>
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }
 

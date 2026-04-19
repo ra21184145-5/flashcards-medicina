@@ -75,7 +75,7 @@ npm test
 
 ## Geração por IA
 
-A chave da API Google Gemini é informada pelo próprio usuário na tela de Configurações dentro do app e fica armazenada apenas localmente (AsyncStorage). Modelos suportados: `gemini-2.5-pro` (padrão), `gemini-2.5-flash`, `gemini-2.0-flash`.
+A chave da API Google Gemini é informada pelo próprio usuário na tela de Configurações dentro do app e fica armazenada apenas localmente (AsyncStorage). Modelos suportados: `gemini-3.1-pro-preview` (padrão) e `gemini-3-flash-preview`.
 
 ## Licença
 

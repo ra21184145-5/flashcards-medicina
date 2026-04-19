@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ScreenContainer } from '../components/ScreenContainer';
 import { Button } from '../components/Button';
 import { Input } from '../components/Input';
 import { useData } from '../context/DataContext';
@@ -77,7 +77,7 @@ export function CreateDeckScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.flex} edges={['top']}>
+    <ScreenContainer>
       <View style={styles.topo}>
         <Button title="← Voltar" variant="ghost" onPress={() => nav.goBack()} style={styles.voltar} />
       </View>
@@ -162,7 +162,7 @@ export function CreateDeckScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }
 

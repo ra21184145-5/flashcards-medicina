@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ScreenContainer } from '../components/ScreenContainer';
 import { useNavigation } from '@react-navigation/native';
 import { Button } from '../components/Button';
 import { Card } from '../components/Card';
@@ -10,9 +10,8 @@ import { colors, spacing } from '../theme/colors';
 import { StackNav } from '../navigation/types';
 
 const MODELOS_SUGERIDOS = [
-  'gemini-2.5-pro',
-  'gemini-2.5-flash',
-  'gemini-2.0-flash',
+  'gemini-3.1-pro-preview',
+  'gemini-3-flash-preview',
 ];
 
 export function SettingsScreen() {
@@ -28,7 +27,7 @@ export function SettingsScreen() {
       setErro(null);
       await atualizarConfig({
         geminiApiKey: chave.trim(),
-        geminiModelo: modelo.trim() || 'gemini-2.5-pro',
+        geminiModelo: modelo.trim() || 'gemini-3.1-pro-preview',
       });
       setSalvou(true);
       setTimeout(() => setSalvou(false), 2200);
@@ -46,7 +45,7 @@ export function SettingsScreen() {
   const mascarada = chave ? chave.slice(0, 6) + '•'.repeat(Math.max(0, chave.length - 10)) + chave.slice(-4) : '';
 
   return (
-    <SafeAreaView style={styles.flex} edges={['top']}>
+    <ScreenContainer>
       <View style={styles.topo}>
         <Pressable onPress={() => nav.goBack()} style={styles.voltar}>
           <Text style={styles.voltarTexto}>← Voltar</Text>
@@ -90,7 +89,7 @@ export function SettingsScreen() {
 
           <Input
             label="Modelo"
-            placeholder="gemini-2.5-pro"
+            placeholder="gemini-3.1-pro-preview"
             value={modelo}
             onChangeText={setModelo}
             autoCapitalize="none"
@@ -126,7 +125,7 @@ export function SettingsScreen() {
           <Text style={styles.versao}>versao 1.1.0</Text>
         </Card>
       </ScrollView>
-    </SafeAreaView>
+    </ScreenContainer>
   );
 }
 

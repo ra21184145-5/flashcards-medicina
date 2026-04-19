@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { colors } from '../theme/colors';
+import { fonts } from '../theme/typography';
 import { Privacy } from '../types';
 
 interface ChipProps {
@@ -10,10 +11,10 @@ interface ChipProps {
 }
 
 const tons = {
-  info: { bg: '#E6F0FD', fg: '#1856C2' },
-  ok: { bg: '#DFF7EC', fg: '#0E8B5E' },
-  aviso: { bg: '#FFF1CF', fg: '#8A5C00' },
-  neutro: { bg: '#F0F2F5', fg: '#4B5562' },
+  info: { bg: colors.primarySoft, fg: colors.primaryDeep },
+  ok: { bg: colors.accentSoft, fg: '#0A8055' },
+  aviso: { bg: colors.amberSoft, fg: colors.amber },
+  neutro: { bg: colors.surfaceMuted, fg: colors.textMuted },
 };
 
 function rotulo(p?: Privacy): string {
@@ -21,7 +22,7 @@ function rotulo(p?: Privacy): string {
     case 'privado':
       return 'Privado';
     case 'publico':
-      return 'Publico';
+      return 'Público';
     case 'grupo':
       return 'Grupo';
     default:
@@ -62,8 +63,9 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   texto: {
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 0.2,
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 10,
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
   },
 });

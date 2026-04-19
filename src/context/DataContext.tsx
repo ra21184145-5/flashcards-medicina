@@ -34,7 +34,7 @@ function gerarId(prefixo: string) {
 
 const CONFIG_INICIAL: Configuracoes = {
   geminiApiKey: '',
-  geminiModelo: 'gemini-2.5-pro',
+  geminiModelo: 'gemini-3.1-pro-preview',
 };
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
