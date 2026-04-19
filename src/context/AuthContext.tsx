@@ -20,6 +20,7 @@ interface AuthContextValue {
   entrar: (email: string, senha: string) => Promise<void>;
   cadastrar: (nome: string, email: string, senha: string) => Promise<void>;
   entrarComGoogle: (idToken: string) => Promise<void>;
+  entrarComoDemo: () => Promise<void>;
   sair: () => Promise<void>;
 }
 
@@ -55,6 +56,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
+    // Restaura usuario demo do cache local (nao passa por Firebase).
+    (async () => {
+      const cached = await storage.getUser();
+      if (cached && cached.id.startsWith('demo-')) {
+        setUser(cached);
+        setCarregando(false);
+      }
+    })();
+
     // onAuthStateChanged dispara na inicializacao com o estado restaurado
     // do AsyncStorage, permitindo manter o usuario logado entre sessoes.
     const unsub = onAuthStateChanged(auth, async (fbUser) => {
@@ -63,8 +73,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await storage.setUser(u);
         setUser(u);
       } else {
-        await storage.setUser(null);
-        setUser(null);
+        // So limpa se o usuario atual nao for demo.
+        const cached = await storage.getUser();
+        if (!cached || !cached.id.startsWith('demo-')) {
+          await storage.setUser(null);
+          setUser(null);
+        }
       }
       setCarregando(false);
     });
@@ -119,15 +133,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  async function entrarComoDemo() {
+    // Modo demo: usuario local sem Firebase. Util para a banca avaliadora
+    // e para capturas de tela automatizadas. Nao sincroniza com nuvem.
+    const demo: User = {
+      id: `demo-${Date.now().toString(36)}`,
+      email: 'demo@flashcards.local',
+      nome: 'Convidado',
+    };
+    await storage.setUser(demo);
+    setUser(demo);
+    setCarregando(false);
+  }
+
   async function sair() {
+    // Se for usuario demo (sem Firebase), so limpa o cache local.
+    if (user?.id.startsWith('demo-')) {
+      await storage.limpar();
+      setUser(null);
+      return;
+    }
     await signOut(auth);
-    // Limpamos o cache local para evitar vazamento entre contas no mesmo dispositivo.
     await storage.limpar();
   }
 
   return (
     <AuthContext.Provider
-      value={{ user, carregando, entrar, cadastrar, entrarComGoogle, sair }}
+      value={{
+        user,
+        carregando,
+        entrar,
+        cadastrar,
+        entrarComGoogle,
+        entrarComoDemo,
+        sair,
+      }}
     >
       {children}
     </AuthContext.Provider>
