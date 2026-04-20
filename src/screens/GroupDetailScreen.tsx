@@ -25,11 +25,10 @@ async function copiarParaClipboard(texto: string) {
       await (navigator as any).clipboard.writeText(texto);
       return true;
     }
-    // @ts-ignore — fallback nativo
     if (Platform.OS !== 'web') {
-      const Clipboard = require('@react-native-clipboard/clipboard').default;
-      if (Clipboard?.setString) {
-        Clipboard.setString(texto);
+      const Clipboard = require('expo-clipboard');
+      if (Clipboard?.setStringAsync) {
+        await Clipboard.setStringAsync(texto);
         return true;
       }
     }
